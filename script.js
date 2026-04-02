@@ -41,22 +41,45 @@ async function inicializarSite() {
 }
 
 // ESTA FUNÇÃO CHAMA O ANÚNCIO REAL
-function mostrarAnuncio(timeId) {
-    const modal = document.getElementById('video-modal');
-    modal.style.display = 'flex';
-    document.getElementById('ad-status').innerText = "Iniciando vídeo...";
+// AQUI VOCÊ COLA O CÓDIGO SCRIPT QUE O ADSTERRA TE DER (O POPUNDER)
+<script src="https://pl29045390.profitablecpmratenetwork.com/c4/2b/39/c42b3986b735d838fe3f3260b7a87349.js"></script>
+// Geralmente é um script que cria uma função global ou dispara ao carregar.
 
-    // EXEMPLO DE LÓGICA DE REDE DE ANÚNCIO (Unity/AdSense)
-    // Na vida real, você usaria algo como: adProvider.showVideo()
+function iniciarProcessoVoto(timeId) {
+    // 1. DISPARA O POPUNDER (O Adsterra faz isso automaticamente quando o script é carregado
+    // ou através de um link. Se for um link, use: window.open('LINK_DO_ADSTERRA', '_blank');)
     
-    console.log("Chamando anúncio para o time: " + timeId);
+    const modal = document.getElementById('video-modal');
+    const status = document.getElementById('ad-status');
+    const progressFill = document.getElementById('progress-fill');
+    
+    modal.style.display = 'flex';
+    progressFill.style.width = "0%";
 
-    // SIMULAÇÃO DE CALLBACK (Substitua pela função de sucesso do seu AdProvider)
-    // O anúncio real avisará o código quando terminar.
-    setTimeout(() => {
-        modal.style.display = 'none';
-        enviarVoto(timeId); // Só vota se o vídeo terminar
-    }, 15000); // Aqui simulamos 15s, mas o anúncio real controla esse tempo.
+    let tempoRestante = 15; // 15 segundos para validar
+    status.innerText = `Validando seu voto em ${tempoRestante}s...`;
+    status.style.color = "#fff";
+
+    const contador = setInterval(() => {
+        tempoRestante--;
+        status.innerText = `Validando seu voto em ${tempoRestante}s...`;
+        
+        // Atualiza a barra
+        let progresso = ((15 - tempoRestante) / 15) * 100;
+        progressFill.style.width = progresso + "%";
+
+        if (tempoRestante <= 0) {
+            clearInterval(contador);
+            status.innerText = "✅ Voto Validado!";
+            status.style.color = "#2ecc71";
+            
+            // Grava o voto no Google Sheets após o delay
+            setTimeout(() => {
+                modal.style.display = 'none';
+                enviarVoto(timeId); 
+            }, 1000);
+        }
+    }, 1000);
 }
 
 async function enviarVoto(timeId) {
