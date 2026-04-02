@@ -1,43 +1,26 @@
-body { font-family: 'Segoe UI', sans-serif; background: #eceff1; margin: 0; padding: 20px; }
-header { text-align: center; background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-#countdown-box { font-size: 1.2em; color: #f1c40f; margin-top: 10px; font-weight: bold; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+header { text-align: center; background: #1a2a3a; color: white; padding: 30px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+#countdown-box { font-size: 1.1em; color: #f1c40f; margin-top: 10px; }
 
-#ranking-geral-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px; }
-.ranking-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold; }
+.painel-info { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+#ranking-geral-container, #historico-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.ranking-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-weight: bold; }
 
-.grid-times { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-.card-time { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-.escudo-lista { height: 80px; margin-bottom: 15px; }
+.grid-times { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; }
+.card-time { background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+.card-time:hover { transform: translateY(-5px); }
+.escudo-lista { height: 90px; margin-bottom: 15px; object-fit: contain; }
 
-.btn-votar { background: #27ae60; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: bold; }
-.btn-info { display: block; margin-top: 12px; color: #3498db; text-decoration: none; font-size: 0.9em; }
+.btn-votar { background: #27ae60; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: bold; margin-bottom: 15px; }
+.btn-votar:disabled { background: #95a5a6; }
 
-.modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; justify-content:center; align-items:center; z-index:1000; }
-.modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 85%; max-width: 350px; }
+.acoes-card { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.btn-info { color: #3498db; text-decoration: none; font-size: 0.9em; font-weight: bold; }
+.btn-share { background: #25d366; color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 0.85em; font-weight: bold; display: inline-block; }
+
+.modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; justify-content:center; align-items:center; z-index:1000; }
+.modal-content { background: white; padding: 35px; border-radius: 20px; text-align: center; width: 90%; max-width: 380px; }
 .progress-bar { background: #eee; height: 12px; border-radius: 6px; margin-top: 20px; overflow: hidden; }
 #progress-fill { background: #27ae60; height: 100%; width: 0%; transition: width 1s linear; }
 
-.painel-info {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-#historico-container {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.historico-item {
-    font-size: 0.85em;
-    padding: 5px 0;
-    border-bottom: 1px dashed #ddd;
-    color: #555;
-}
-
-@media (max-width: 600px) {
-    .painel-info { grid-template-columns: 1fr; }
-}
+@media (max-width: 650px) { .painel-info { grid-template-columns: 1fr; } }
