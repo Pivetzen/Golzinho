@@ -16,3 +16,28 @@ header { text-align: center; background: #2c3e50; color: white; padding: 20px; b
 .modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 85%; max-width: 350px; }
 .progress-bar { background: #eee; height: 12px; border-radius: 6px; margin-top: 20px; overflow: hidden; }
 #progress-fill { background: #27ae60; height: 100%; width: 0%; transition: width 1s linear; }
+
+.painel-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+#historico-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.historico-item {
+    font-size: 0.85em;
+    padding: 5px 0;
+    border-bottom: 1px dashed #ddd;
+    color: #555;
+}
+
+@media (max-width: 600px) {
+    .painel-info { grid-template-columns: 1fr; }
+}
