@@ -8,10 +8,12 @@ async function inicializarSite() {
         const response = await fetch(APPS_SCRIPT_URL);
         const dados = await response.json();
         
+        if(dados.error) throw new Error(dados.error);
+
         containerVotacao.innerHTML = "";
         containerRanking.innerHTML = "";
 
-        // Renderizar Ranking Geral (Histórico)
+        // Ranking Geral
         const rankingOrdenado = [...dados].sort((a, b) => b.pontosGeral - a.pontosGeral);
         rankingOrdenado.slice(0, 5).forEach((time, index) => {
             const item = document.createElement('div');
@@ -20,43 +22,24 @@ async function inicializarSite() {
             containerRanking.appendChild(item);
         });
 
-        // Renderizar Cards de Votação (Semana)
+        // Cards de Votação
         const votacaoOrdenada = [...dados].sort((a, b) => b.votos - a.votos);
         votacaoOrdenada.forEach(time => {
             const card = document.createElement('div');
             card.className = 'card-time';
             card.style.borderTop = `6px solid ${time.cor}`;
-            
             card.innerHTML = `
                 <img src="${time.escudo}" class="escudo-lista" alt="Escudo">
                 <h3>${time.nome}</h3>
                 <p class="votos-count">🗳️ ${time.votos} votos</p>
-                <button class="btn-votar" onclick="iniciarProcessoVoto('${time.id}')">Votar Agora</button>
+                <button id="btn-${time.id}" class="btn-votar" onclick="iniciarProcessoVoto('${time.id}')">Votar</button>
                 <a href="clube.html?id=${time.id}" class="btn-info">Ver Perfil</a>
             `;
             containerVotacao.appendChild(card);
         });
-
     } catch (error) {
-        containerVotacao.innerHTML = "<p>Erro ao carregar dados.</p>";
+        containerVotacao.innerHTML = "<p>Erro ao carregar dados da planilha.</p>";
     }
-}
-
-// Cronômetro para o Reset (Toda Segunda 00h)
-function atualizarCronometro() {
-    const agora = new Date();
-    const proximaSegunda = new Date();
-    proximaSegunda.setDate(agora.getDate() + (1 + 7 - agora.getDay()) % 7);
-    proximaSegunda.setHours(0, 0, 0, 0);
-
-    const diff = proximaSegunda - agora;
-    
-    const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const minutos = Math.floor((diff / 1000 / 60) % 60);
-    const segundos = Math.floor((diff / 1000) % 60);
-
-    document.getElementById('timer-semanal').innerText = `${dias}d ${horas}h ${minutos}m ${segundos}s`;
 }
 
 function iniciarProcessoVoto(timeId) {
@@ -66,6 +49,7 @@ function iniciarProcessoVoto(timeId) {
     let tempo = 15;
 
     modal.style.display = 'flex';
+    progressFill.style.width = "0%";
     
     const intervalo = setInterval(() => {
         tempo--;
@@ -80,17 +64,38 @@ function iniciarProcessoVoto(timeId) {
 }
 
 async function enviarVoto(timeId) {
+    const btn = document.getElementById(`btn-${timeId}`);
+    const originalText = btn.innerText;
+    btn.innerText = "Enviando...";
+    btn.disabled = true;
+
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({ timeId: timeId })
         });
-        alert("Voto Confirmado!");
-        inicializarSite();
+        alert("Voto computado com sucesso!");
+        inicializarSite(); 
     } catch (e) {
-        alert("Erro na conexão.");
+        alert("Erro ao enviar voto. Tente novamente.");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
     }
+}
+
+function atualizarCronometro() {
+    const agora = new Date();
+    const proximaSegunda = new Date();
+    proximaSegunda.setDate(agora.getDate() + (1 + 7 - agora.getDay()) % 7);
+    proximaSegunda.setHours(0, 0, 0, 0);
+    const diff = proximaSegunda - agora;
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((diff / 1000 / 60) % 60);
+    const s = Math.floor((diff / 1000) % 60);
+    document.getElementById('timer-semanal').innerText = `${d}d ${h}h ${m}m ${s}s`;
 }
 
 setInterval(atualizarCronometro, 1000);
