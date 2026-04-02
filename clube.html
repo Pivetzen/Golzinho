@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página do Clube</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; justify-content: center; background: #f4f4f9; }
+        .card { background: white; width: 90%; max-width: 500px; margin-top: 50px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; padding-bottom: 30px; }
+        .header-clube { height: 100px; margin-bottom: 60px; position: relative; }
+        .escudo { width: 120px; height: 120px; background: white; border-radius: 50%; position: absolute; bottom: -60px; left: 50%; transform: translateX(-50%); border: 5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); object-fit: contain; }
+        h1 { margin: 10px 0; color: #333; }
+        .historia { padding: 0 30px; color: #666; line-height: 1.6; text-align: justify; }
+        .btn-voltar { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #333; color: white; text-decoration: none; border-radius: 5px; }
+        #loading { margin-top: 100px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="loading">Carregando informações do clube...</div>
+
+    <div id="conteudo-clube" class="card" style="display:none;">
+        <div id="faixa-cor" class="header-clube">
+            <img id="img-escudo" src="" alt="Escudo" class="escudo">
+        </div>
+        <h1 id="nome-clube">Nome do Time</h1>
+        <div class="historia">
+            <p id="info-clube">História e detalhes do clube aqui...</p>
+        </div>
+        <a href="index.html" class="btn-voltar">⬅ Voltar para Votação</a>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXLk1qiMFzO80OuNB_mxuzuUo0mcAOcucB_xBSi4pBoWbCccxW0X9BZw-LHPECUsl_ZA/exec"; // COLOQUE SUA URL AQUI
+
+        async function carregarDadosClube() {
+            // 1. Pega o ID da URL (ex: clube.html?id=fortaleza)
+            const params = new URLSearchParams(window.location.search);
+            const timeId = params.get('id');
+
+            if (!timeId) {
+                document.body.innerHTML = "<h1>Clube não encontrado.</h1>";
+                return;
+            }
+
+            try {
+                // 2. Busca todos os times na planilha
+                const response = await fetch(APPS_SCRIPT_URL);
+                const times = await response.json();
+
+                // 3. Filtra o time específico
+                const clube = times.find(t => t.id === timeId);
+
+                if (clube) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('conteudo-clube').style.display = 'block';
+
+                    // 4. Preenche a página
+                    document.getElementById('nome-clube').innerText = clube.nome;
+                    document.getElementById('info-clube').innerText = clube.info;
+                    document.getElementById('img-escudo').src = clube.escudo;
+                    document.getElementById('faixa-cor').style.backgroundColor = clube.cor;
+                    document.title = "Torcida: " + clube.nome;
+                } else {
+                    document.getElementById('loading').innerText = "Clube não cadastrado na planilha.";
+                }
+
+            } catch (error) {
+                console.error("Erro:", error);
+                document.getElementById('loading').innerText = "Erro ao conectar com o banco de dados.";
+            }
+        }
+
+        carregarDadosClube();
+    </script>
+</body>
+</html>
