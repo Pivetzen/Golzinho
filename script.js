@@ -29,7 +29,7 @@ async function inicializarSite() {
                 <img src="${time.escudo}" class="escudo-lista">
                 <h3>${time.nome}</h3>
                 <p class="votos-count">🗳️ ${time.votos} votos</p>
-                <button id="btn-${time.id}" class="btn-votar" onclick="mostrarAnuncio('${time.id}')">Votar Agora</button>
+                <button id="btn-${time.id}" class="btn-votar" onclick="iniciarProcessoVoto('${time.id}')">Votar Agora</button>
                 <div class="acoes-card">
                     <a href="clube.html?id=${time.id}" class="btn-info">Ver Perfil</a>
                     <a href="https://api.whatsapp.com/send?text=${textoShare}" target="_blank" class="btn-share">📢 Compartilhar</a>
@@ -40,15 +40,8 @@ async function inicializarSite() {
     } catch (e) { containerVotacao.innerHTML = "Erro ao carregar."; }
 }
 
-// ESTA FUNÇÃO CHAMA O ANÚNCIO REAL
-// AQUI VOCÊ COLA O CÓDIGO SCRIPT QUE O ADSTERRA TE DER (O POPUNDER)
-<script src="https://pl29045390.profitablecpmratenetwork.com/c4/2b/39/c42b3986b735d838fe3f3260b7a87349.js"></script>
-// Geralmente é um script que cria uma função global ou dispara ao carregar.
-
+// FUNÇÃO DE RECOMPENSA (TIMER)
 function iniciarProcessoVoto(timeId) {
-    // 1. DISPARA O POPUNDER (O Adsterra faz isso automaticamente quando o script é carregado
-    // ou através de um link. Se for um link, use: window.open('LINK_DO_ADSTERRA', '_blank');)
-    
     const modal = document.getElementById('video-modal');
     const status = document.getElementById('ad-status');
     const progressFill = document.getElementById('progress-fill');
@@ -56,7 +49,7 @@ function iniciarProcessoVoto(timeId) {
     modal.style.display = 'flex';
     progressFill.style.width = "0%";
 
-    let tempoRestante = 15; // 15 segundos para validar
+    let tempoRestante = 15; 
     status.innerText = `Validando seu voto em ${tempoRestante}s...`;
     status.style.color = "#fff";
 
@@ -64,7 +57,6 @@ function iniciarProcessoVoto(timeId) {
         tempoRestante--;
         status.innerText = `Validando seu voto em ${tempoRestante}s...`;
         
-        // Atualiza a barra
         let progresso = ((15 - tempoRestante) / 15) * 100;
         progressFill.style.width = progresso + "%";
 
@@ -73,7 +65,6 @@ function iniciarProcessoVoto(timeId) {
             status.innerText = "✅ Voto Validado!";
             status.style.color = "#2ecc71";
             
-            // Grava o voto no Google Sheets após o delay
             setTimeout(() => {
                 modal.style.display = 'none';
                 enviarVoto(timeId); 
