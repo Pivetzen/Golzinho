@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campeonato de Torcidas</title>
+    <meta name="monetag" content="a7d67c728d6ecd5ec5d878a905b9419f">
+    
     <link rel="stylesheet" href="style.css">
-    </head>
+</head>
 <body>
 
     <header>
@@ -20,24 +22,28 @@
             <h2>📊 Ranking Geral (Líderes)</h2>
             <div id="lista-ranking-geral"></div>
         </section>
+
         <section id="historico-container">
             <h2>📅 Últimos Campeões</h2>
-            <div id="lista-historico"><p>O histórico é atualizado toda segunda-feira.</p></div>
+            <div id="lista-historico">
+                <p>O histórico é atualizado toda segunda-feira.</p>
+            </div>
         </section>
     </div>
 
     <main>
         <h2>🗳️ Votos da Semana</h2>
-        <div id="lista-times" class="grid-times"></div>
+        <div id="lista-times" class="grid-times">
+            <p>Carregando times...</p>
+        </div>
     </main>
 
     <div id="video-modal" class="modal" style="display:none;">
         <div class="modal-content">
-            <h3>🎬 Assista para votar</h3>
-            <div id="ad-container" style="min-height: 250px; background: #000; display: flex; align-items: center; justify-content: center; color: #fff;">
-                <p id="ad-status">Carregando anúncio...</p>
-            </div>
-            <p style="font-size: 0.8em; margin-top: 10px; color: #666;">Seu voto será computado após o término do vídeo.</p>
+            <h3>🎬 Verificação de Torcedor</h3>
+            <p id="ad-status">Iniciando anúncio...</p>
+            <div class="progress-bar"><div id="progress-fill"></div></div>
+            <p style="font-size: 0.7em; color: #999; margin-top: 15px;">Aguarde o término para validar seu voto.</p>
         </div>
     </div>
 
