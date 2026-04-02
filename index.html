@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote no seu Time!</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🏆 Ranking da Semana</h1>
+        <div id="countdown">A rodada encerra em: <span id="timer">Calculando...</span></div>
+    </header>
+
+    <main id="app">
+        <div id="lista-times" class="grid-times"></div>
+    </main>
+
+    <div id="video-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>Assista para validar seu voto</h3>
+            <div class="video-placeholder">
+                <p>Simulando vídeo... <span id="video-timer">15</span>s</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
