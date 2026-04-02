@@ -1,90 +1,18 @@
-/* Estilo Geral */
-body {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    background-color: #f0f2f5;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+body { font-family: 'Segoe UI', sans-serif; background: #eceff1; margin: 0; padding: 20px; }
+header { text-align: center; background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+#countdown-box { font-size: 1.2em; color: #f1c40f; margin-top: 10px; font-weight: bold; }
 
-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
+#ranking-geral-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px; }
+.ranking-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold; }
 
-/* Grid de Times */
-.grid-times {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    width: 100%;
-    max-width: 1000px;
-}
+.grid-times { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.card-time { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+.escudo-lista { height: 80px; margin-bottom: 15px; }
 
-/* Card do Time */
-.card-time {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: transform 0.2s;
-}
+.btn-votar { background: #27ae60; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: bold; }
+.btn-info { display: block; margin-top: 12px; color: #3498db; text-decoration: none; font-size: 0.9em; }
 
-.card-time:hover {
-    transform: translateY(-5px);
-}
-
-.escudo-lista {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    margin-bottom: 10px;
-}
-
-.votos-count {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #2c3e50;
-    margin: 10px 0;
-}
-
-/* Botões */
-.btn-votar {
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    width: 100%;
-    margin-bottom: 8px;
-}
-
-.btn-info {
-    display: block;
-    color: #3498db;
-    text-decoration: none;
-    font-size: 0.9rem;
-}
-
-/* Modal do Vídeo */
-.modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-}
+.modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; justify-content:center; align-items:center; z-index:1000; }
+.modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 85%; max-width: 350px; }
+.progress-bar { background: #eee; height: 12px; border-radius: 6px; margin-top: 20px; overflow: hidden; }
+#progress-fill { background: #27ae60; height: 100%; width: 0%; transition: width 1s linear; }
