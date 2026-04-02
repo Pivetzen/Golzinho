@@ -3,25 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vote no seu Time!</title>
+    <title>Campeonato de Torcidas</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <header>
-        <h1>🏆 Ranking da Semana</h1>
-        <div id="countdown">A rodada encerra em: <span id="timer">Calculando...</span></div>
+        <h1>🏆 Campeonato de Torcidas</h1>
+        <div id="countdown-box">
+            Fim da rodada em: <span id="timer-semanal">--d --h --m --s</span>
+        </div>
     </header>
 
-    <main id="app">
-        <div id="lista-times" class="grid-times"></div>
+    <section id="ranking-geral-container">
+        <h2>📊 Ranking Geral (Top 5 Histórico)</h2>
+        <div id="lista-ranking-geral">
+            </div>
+    </section>
+
+    <main>
+        <h2>🗳️ Votos da Semana</h2>
+        <div id="lista-times" class="grid-times">
+            <p>Carregando times...</p>
+        </div>
     </main>
 
     <div id="video-modal" class="modal" style="display:none;">
         <div class="modal-content">
-            <h3>Assista para validar seu voto</h3>
-            <div class="video-placeholder">
-                <p>Simulando vídeo... <span id="video-timer">15</span>s</p>
-            </div>
+            <h3>🎬 Validando Voto...</h3>
+            <p>Assista ao vídeo para confirmar: <span id="video-timer">15</span>s</p>
+            <div class="progress-bar"><div id="progress-fill"></div></div>
         </div>
     </div>
 
