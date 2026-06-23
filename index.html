@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Golzinho Realtime - Arena CrazyGames</title>
-    
-    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+    <title>Golzinho Realtime - Arena</title>
     
     <style>
         :root {
@@ -78,7 +76,7 @@
         }
         .btn-kick:not(:disabled):hover { background: linear-gradient(to bottom, #5cdd72 0%, #329e48 100%); }
         .btn-kick:active { transform: translateY(4px); box-shadow: 0 2px 0 #1c5c29, 0 4px 10px rgba(0,0,0,0.5); }
-        .btn-kick:disabled { background: #333 !important; box-shadow: none !important; cursor: not-allowed; opacity: 0.4; color: #777; transform: none; }
+        .btn-kick:disabled { background: #333 !important; box-shadow: none !important; cursor: not-allowed; opacity: 0.6; color: #fff; transform: none; }
 
         /* Placar Gamificado Retro-LED */
         .scoreboard { 
@@ -124,7 +122,7 @@
         </select>
     </div>
 
-    <button class="btn-kick" id="btnGol" disabled>⚽ Chutar pro Gol! (Assista ao Ad)</button>
+    <button class="btn-kick" id="btnGol" disabled>⚽ Chutar pro Gol!</button>
 
     <div class="scoreboard">
         <h3>
@@ -149,7 +147,6 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    // 🛡️ ADICIONADO: Importação do SDK do App Check
     import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
     const URL_PLANILHA_API = "https://script.google.com/macros/s/AKfycbxMpYkz_6GhN02m2XqlQheQM3UbuoM7Qfuz5I-IIDELqsyE7fWgx47cCvkcyB-0s_RzRA/exec";
@@ -164,11 +161,9 @@
         appId: "1:685138662724:web:760dabe9dc52fed8c1b311"
     };
 
-    // Inicializa o Firebase
     const app = initializeApp(firebaseConfig);
 
-    // 🛡️ ADICIONADO: Inicialização do App Check. 
-    // ATENÇÃO: Substitua 'SUA_CHAVE_RECAPTCHA_AQUI' pela "Chave do Site" gerada no Google reCAPTCHA v3
+    // Lembrar de preencher a sua chave de site gerada no reCAPTCHA v3
     const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider('SUA_CHAVE_RECAPTCHA_AQUI'),
         isTokenAutoRefreshEnabled: true
@@ -183,19 +178,13 @@
     let dbDataCache = {}; 
     let mapaTimes = {}; 
     let regiaoAtual = 'todos';
-    let crazyGamesSDK = null;
 
     // ==========================================
-    // 🕹️ INICIALIZAÇÃO DA CRAZYGAMES SDK
+    // ⚙️ CONFIGURAÇÃO ADSTERRA (DIRECT LINK)
     // ==========================================
-    if (typeof window.CrazyGames !== "undefined" && window.CrazyGames.SDK) {
-        window.CrazyGames.SDK.init().then(sdk => {
-            console.log('CrazyGames SDK inicializada com sucesso.');
-            crazyGamesSDK = sdk;
-        }).catch(err => {
-            console.error('Erro ao inicializar CrazyGames SDK:', err);
-        });
-    }
+    // Acesse o painel da Adsterra, gere um "Direct Link" e cole a URL dele aqui embaixo:
+    const URL_ADSTERRA_DIRECT_LINK = "https://www.exemplo-link-adsterra.com/seu-codigo-aqui";
+    const TEMPO_ANUNCIO_SEGUNDOS = 15; // Tempo que o jogador precisa esperar vendo o anúncio
 
     async function carregarDadosDosTimes() {
         try {
@@ -245,7 +234,6 @@
             const infoSheets = mapaTimes[nomeTime.trim()];
             if (!infoSheets) return regiaoAtual === 'todos'; 
             if (regiaoAtual === 'todos') return true;
-            
             return String(infoSheets.regiao).toLowerCase().trim() === String(regiaoAtual).toLowerCase().trim();
         });
 
@@ -279,7 +267,7 @@
     };
 
     // ==========================================
-    // 🎬 LÓGICA DE CHUTE COM REWARDED ADS CRAZYGAMES
+    // 🎬 LÓGICA DE CHUTE E CONTAGEM COM ADSTERRA
     // ==========================================
     btnGol.addEventListener('click', () => {
         const timeSelecionado = selectTime.value;
@@ -288,27 +276,24 @@
             return;
         }
 
-        btnGol.disabled = true;
-        btnGol.innerText = "⚡ Carregando Anúncio...";
+        // 1. Abre o Direct Link da Adsterra em uma nova guia do navegador
+        window.open(URL_ADSTERRA_DIRECT_LINK, '_blank');
 
-        if (crazyGamesSDK && crazyGamesSDK.ad) {
-            crazyGamesSDK.ad.requestAd("rewarded", {
-                adStarted: () => {
-                    console.log("O anúncio recompensado começou.");
-                },
-                adFinished: () => {
-                    concluirGol(timeSelecionado);
-                },
-                adError: (error) => {
-                    console.error("Erro no anúncio ou o usuário fechou antes da hora:", error);
-                    alert("⚠️ Você precisa assistir ao vídeo completo para validar o gol!");
-                    restaurarBotaoChute();
-                }
-            });
-        } else {
-            console.log("Ambiente local/AdBlock ativo. Simulando fluxo.");
-            concluirGol(timeSelecionado);
-        }
+        // 2. Trava o botão do jogo e inicia a contagem regressiva
+        let tempoRestante = TEMPO_ANUNCIO_SEGUNDOS;
+        btnGol.disabled = true;
+        btnGol.innerText = `⏳ Validando lance (${tempoRestante}s)...`;
+
+        const cronometro = setInterval(() => {
+            tempoRestante--;
+            if (tempoRestante > 0) {
+                btnGol.innerText = `⏳ Validando lance (${tempoRestante}s)...`;
+            } else {
+                // 3. O tempo acabou! Para o loop e computa o gol no Firebase
+                clearInterval(cronometro);
+                concluirGol(timeSelecionado);
+            }
+        }, 1000);
     });
 
     function concluirGol(timeSelecionado) {
@@ -316,7 +301,7 @@
         runTransaction(golRef, (currentGols) => {
             return (currentGols || 0) + 1;
         }).then(() => {
-            alert(`⚽ GOOOL CONVALIDADO! +1 ponto para o ${timeSelecionado}!`);
+            alert(`⚽ GOOOL CONVALIDADO! O anúncio gerou fundos e o ${timeSelecionado} pontuou!`);
             restaurarBotaoChute();
         }).catch(err => {
             console.error("Transação rejeitada via Firebase:", err);
@@ -326,7 +311,7 @@
 
     function restaurarBotaoChute() {
         btnGol.disabled = false;
-        btnGol.innerText = "⚽ Chutar pro Gol! (Assista ao Ad)";
+        btnGol.innerText = "⚽ Chutar pro Gol!";
     }
 
     carregarDadosDosTimes().then(() => {
