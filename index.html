@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="monetag" content="a7d67c728d6ecd5ec5d878a905b9419f">
+
     <title>Golzinho Realtime - Arena</title>
     
-    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+    <script src="https://alwingulla.com/act/files/tag.min.js" data-zone="8888888" async data-cfasync="false"></script>
     
     <style>
         :root {
@@ -173,33 +176,9 @@
     let regiaoAtual = 'todos';
 
     // ==========================================
-    // 🎛️ CONFIGURAÇÃO DE ADS REAIS (GOOGLE GPT)
+    // 🎛️ CONFIGURAÇÃO DO ID DA MONETAG
     // ==========================================
-    let rewardedSlot;
-    let recompensaConcedida = false;
-
-    window.googletag = window.googletag || { cmd: [] };
-    
-    googletag.cmd.push(() => {
-        rewardedSlot = googletag.defineOutOfPageSlot(
-            '/6355419/txt_rewarded_ad_unit_id', 
-            googletag.enums.OutOfPageFormat.REWARDED
-        );
-
-        if (rewardedSlot) {
-            rewardedSlot.addService(googletag.pubads());
-            
-            googletag.pubads().addEventListener('rewardedSlotGranted', (event) => {
-                recompensaConcedida = true;
-            });
-
-            googletag.pubads().addEventListener('rewardedSlotClosed', (event) => {
-                processarFechamentoAd();
-            });
-
-            googletag.enableServices();
-        }
-    });
+    const MONETAG_ZONE_ID = 8888888; // 👈 AJUSTE: Mude este número para o seu Zone ID real gerado no painel da Monetag
 
     // ==========================================
     // 📊 INTEGRAÇÃO DO GOOGLE SHEETS
@@ -254,7 +233,7 @@
         dadosPlacar.innerHTML = '';
         const timesFiltrados = Object.keys(dbDataCache).filter(nomeTime => {
             const infoSheets = mapaTimes[nomeTime];
-            if (!infoSheets) return true; // Mantém no placar caso já tenha gols no Firebase
+            if (!infoSheets) return true; 
             if (regiaoAtual === 'todos') return true;
             return infoSheets.regiao === regiaoAtual;
         });
@@ -289,7 +268,7 @@
     };
 
     // ==========================================
-    // 🎬 LOGICA DE CHUTE E CORREÇÃO DO AD
+    // 🎬 LOGICA DE CHUTE COM MONETAG AD
     // ==========================================
     btnGol.addEventListener('click', () => {
         const timeSelecionado = selectTime.value;
@@ -300,41 +279,53 @@
 
         btnGol.disabled = true;
         btnGol.innerText = "⚡ Preparando Chute...";
-        recompensaConcedida = false;
 
-        // CORREÇÃO: Valida se o GPT do Google está totalmente ativo e com anúncios prontos
-        if (window.googletag && googletag.pubadsReady && typeof googletag.display === "function") {
-            googletag.cmd.push(() => { googletag.display(rewardedSlot); });
+        // Verifica se a SDK da Monetag carregou globalmente na página
+        if (typeof window.showInteract === "function") {
+            window.showInteract(MONETAG_ZONE_ID)
+                .then(() => {
+                    // Anúncio aberto/visto com sucesso -> Valida a recompensa
+                    concluirGol(timeSelecionado);
+                })
+                .catch((error) => {
+                    console.warn("Anúncio pulado ou bloqueado:", error);
+                    // Aciona o fallback de simulação caso falte bloco ou use AdBlocker
+                    acionarFallbackSimulado(timeSelecionado);
+                });
         } else {
-            // Se o bloco real não responder (ambiente local ou AdBlock), aciona o mock seguro
-            setTimeout(() => {
-                const assistiu = confirm("[RODADA DE TESTE]\nDeseja assistir à simulação do anúncio premiado para validar o gol?");
-                if(assistiu) recompensaConcedida = true;
-                processarFechamentoAd();
-            }, 800);
+            // Fallback caso esteja rodando localmente (localhost) ou com bloqueadores ativos
+            acionarFallbackSimulado(timeSelecionado);
         }
     });
 
-    function processarFechamentoAd() {
-        const timeSelecionado = selectTime.value;
+    function acionarFallbackSimulado(time) {
+        setTimeout(() => {
+            const assistiu = confirm("[RODADA DE TESTE]\nDeseja assistir à simulação do anúncio premiado para validar o gol?");
+            if (assistiu) {
+                concluirGol(time);
+            } else {
+                alert("❌ Chute pra fora! Você fechou o anúncio antes de pontuar.");
+                restaurarBotaoChute();
+            }
+        }, 600);
+    }
 
-        if (recompensaConcedida) {
-            const golRef = ref(db, `times/${timeSelecionado}/gols`);
-            runTransaction(golRef, (currentGols) => {
-                return (currentGols || 0) + 1;
-            }).then(() => {
-                alert(`⚽ GOOOL CONVALIDADO! Gol computado para o ${timeSelecionado}!`);
-            }).catch(err => console.error("Segurança: transação rejeitada.", err));
-        } else {
-            alert("❌ Chute pra fora! Você fechou a publicidade antes do tempo de validação.");
-        }
+    function concluirGol(timeSelecionado) {
+        const golRef = ref(db, `times/${timeSelecionado}/gols`);
+        runTransaction(golRef, (currentGols) => {
+            return (currentGols || 0) + 1;
+        }).then(() => {
+            alert(`⚽ GOOOL CONVALIDADO! Gol computado para o ${timeSelecionado}!`);
+            restaurarBotaoChute();
+        }).catch(err => {
+            console.error("Transação rejeitada via Firebase:", err);
+            restaurarBotaoChute();
+        });
+    }
 
+    function restaurarBotaoChute() {
         btnGol.disabled = false;
         btnGol.innerText = "⚽ Chutar pro Gol! (Ad)";
-        
-        if (window.googletag && googletag.pubadsReady) {
-            googletag.cmd.push(() => { googletag.pubads().refresh([rewardedSlot]); });
-        }
     }
 
     // Inicialização na ordem certa
