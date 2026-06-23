@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo do Golzinho</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        select, button { width: 100%; padding: 12px; margin: 10px 0; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
+        button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #218838; }
+        .placar { margin-top: 20px; text-align: left; }
+        .time-linha { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; align-items: center; }
+        .bandeira-img { width: 24px; height: 24px; object-fit: contain; margin-right: 8px; }
+        .time-info { display: flex; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⚽ Clique e Marque Gol!</h2>
+    
+    <label for="selectTime">Escolha seu Time:</label>
+    <select id="selectTime">
+        <option value="">Carregando times da planilha...</option>
+    </select>
+
+    <button id="btnGol" disabled>Chutar pro Gol! (Ver Anúncio)</button>
+
+    <div class="placar">
+        <h3>🏆 Placar Geral (Tempo Real)</h3>
+        <div id="dadosPlacar">Carregando placar...</div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // LINK DO SEU GOOGLE APPS SCRIPT
+    const URL_PLANILHA_API = "https://script.google.com/macros/s/AKfycbxMpYkz_6GhN02m2XqlQheQM3UbuoM7Qfuz5I-IIDELqsyE7fWgx47cCvkcyB-0s_RzRA/exec";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBOmB90lBIwHCZMaUIMrqWXQb_bj5VrKyE",
+        authDomain: "golzinho-410ab.firebaseapp.com",
+        databaseURL: "https://golzinho-410ab-default-rtdb.firebaseio.com",
+        projectId: "golzinho-410ab",
+        storageBucket: "golzinho-410ab.firebasestorage.app",
+        messagingSenderId: "685138662724",
+        appId: "1:685138662724:web:760dabe9dc52fed8c1b311"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const btnGol = document.getElementById('btnGol');
+    const selectTime = document.getElementById('selectTime');
+    const dadosPlacar = document.getElementById('dadosPlacar');
+
+    // Dicionário local para guardar a relação de Nome -> Bandeira vinda do Sheets
+    let mapaBandeiras = {};
+
+    // 1. BUSCAR TIMES DO GOOGLE SHEETS
+    async function carregarTimesDoSheets() {
+        try {
+            const response = await fetch(URL_PLANILHA_API);
+            const times = await response.json();
+            
+            selectTime.innerHTML = ''; // Limpa o "Carregando..."
+            
+            times.forEach(time => {
+                // Guarda no mapa para usar no placar depois
+                mapaBandeiras[time.nome] = time.bandeira;
+                
+                // Cria a opção no select
+                const option = document.createElement('option');
+                option.value = time.nome;
+                option.textContent = `${time.bandeira} ${time.nome}`;
+                selectTime.appendChild(option);
+            });
+
+            btnGol.disabled = false; // Libera o botão após carregar
+        } catch (error) {
+            console.error("Erro ao carregar times da planilha:", error);
+            selectTime.innerHTML = '<option>Erro ao carregar os times</option>';
+        }
+    }
+
+    // Função auxiliar para renderizar a bandeira (seja emoji ou link de imagem)
+    function renderizarBandeira(bandeira) {
+        if (!bandeira) return '';
+        if (bandeira.startsWith('http://') || bandeira.startsWith('https://')) {
+            return `<img src="${bandeira}" class="bandeira-img" alt="Bandeira">`;
+        }
+        return `<span style="margin-right: 8px; font-size: 20px;">${bandeira}</span>`;
+    }
+
+    // 2. ESCUTAR GOLS EM TEMPO REAL (FIREBASE)
+    const timesRef = ref(db, 'times');
+    onValue(timesRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            dadosPlacar.innerHTML = '';
+            Object.keys(data)
+                .sort((a, b) => data[b].gols - data[a].gols)
+                .forEach(time => {
+                    const bandeira = mapaBandeiras[time] || '⚽'; // Fallback caso não ache
+                    dadosPlacar.innerHTML += `
+                        <div class="time-linha">
+                            <div class="time-info">
+                                ${renderizarBandeira(bandeira)}
+                                <strong>${time}</strong>
+                            </div>
+                            <span>⚽ ${data[time].gols} gols</span>
+                        </div>
+                    `;
+                });
+        }
+    });
+
+    // 3. LÓGICA DO CLIQUE E DO REWARDED AD
+    btnGol.addEventListener('click', () => {
+        const timeSelecionado = selectTime.value;
+        if(!timeSelecionado) return;
+        
+        btnGol.disabled = true;
+        btnGol.innerText = "Carregando anúncio...";
+
+        simularRewardedAd().then((adAssistidoComSucesso) => {
+            if (adAssistidoComSucesso) {
+                const golRef = ref(db, `times/${timeSelecionado}/gols`);
+                runTransaction(golRef, (currentGols) => {
+                    return (currentGols || 0) + 1;
+                }).then(() => {
+                    alert(`GOOOOL do ${timeSelecionado}! Computado com sucesso.`);
+                }).catch((error) => {
+                    console.error("Erro ao computar gol: ", error);
+                });
+            } else {
+                alert("Você fechou o anúncio antes do fim! O gol não foi contabilizado.");
+            }
+            
+            btnGol.disabled = false;
+            btnGol.innerText = "Chutar pro Gol! (Ver Anúncio)";
+        });
+    });
+
+    function simularRewardedAd() {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                const assistiu = confirm("[Simulação de Anúncio]\nAssista o vídeo até o final para ganhar o gol. Deseja concluir o anúncio?");
+                resolve(assistiu);
+            }, 1000);
+        });
+    }
+
+    // Inicializa a carga do Sheets
+    carregarTimesDoSheets();
+</script>
+</body>
+</html>
