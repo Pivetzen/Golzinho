@@ -191,16 +191,16 @@
             selectTime.innerHTML = '<option value="">-- Selecione seu Clube --</option>';
             
             times.forEach(t => {
-                mapaTimes[t.nome] = t; 
+                // Guarda usando trim() para evitar incompatibilidade por espaços invisíveis
+                mapaTimes[t.nome.trim()] = t; 
                 
                 const option = document.createElement('option');
-                option.value = t.nome;
+                option.value = t.nome.trim();
                 option.textContent = `${t.emblema} ${t.nome} (${t.estado.toUpperCase()})`;
                 selectTime.appendChild(option);
             });
 
             btnGol.disabled = false;
-            renderizarPlacar(); 
         } catch (error) {
             console.error("Erro ao sincronizar com o Sheets:", error);
             dadosPlacar.innerText = "Erro ao sincronizar dados da liga.";
@@ -224,7 +224,7 @@
         });
     }
 
-function renderizarPlacar() {
+    function renderizarPlacar() {
         if (!dbDataCache || Object.keys(dbDataCache).length === 0) {
             dadosPlacar.innerHTML = '<div style="color:#666; padding:10px;">Nenhum gol registrado nesta região.</div>';
             return;
@@ -232,11 +232,10 @@ function renderizarPlacar() {
 
         dadosPlacar.innerHTML = '';
         const timesFiltrados = Object.keys(dbDataCache).filter(nomeTime => {
-            const infoSheets = mapaTimes[nomeTime];
-            if (!infoSheets) return true; 
+            const infoSheets = mapaTimes[nomeTime.trim()];
+            if (!infoSheets) return regiaoAtual === 'todos'; 
             if (regiaoAtual === 'todos') return true;
             
-            // 🟢 CORREÇÃO: Força a comparação de ambas em letras minúsculas para evitar erros
             return String(infoSheets.regiao).toLowerCase().trim() === String(regiaoAtual).toLowerCase().trim();
         });
 
@@ -248,7 +247,7 @@ function renderizarPlacar() {
         timesFiltrados
             .sort((a, b) => (dbDataCache[b].gols || 0) - (dbDataCache[a].gols || 0))
             .forEach(nomeTime => {
-                const info = mapaTimes[nomeTime] || { emblema: '⚽', estado: '??' };
+                const info = mapaTimes[nomeTime.trim()] || { emblema: '⚽', estado: '??' };
                 dadosPlacar.innerHTML += `
                     <div class="row-team">
                         <div class="team-meta">
@@ -282,20 +281,16 @@ function renderizarPlacar() {
         btnGol.disabled = true;
         btnGol.innerText = "⚡ Preparando Chute...";
 
-        // Verifica se a SDK da Monetag carregou globalmente na página
         if (typeof window.showInteract === "function") {
             window.showInteract(MONETAG_ZONE_ID)
                 .then(() => {
-                    // Anúncio aberto/visto com sucesso -> Valida a recompensa
                     concluirGol(timeSelecionado);
                 })
                 .catch((error) => {
                     console.warn("Anúncio pulado ou bloqueado:", error);
-                    // Aciona o fallback de simulação caso falte bloco ou use AdBlocker
                     acionarFallbackSimulado(timeSelecionado);
                 });
         } else {
-            // Fallback caso esteja rodando localmente (localhost) ou com bloqueadores ativos
             acionarFallbackSimulado(timeSelecionado);
         }
     });
@@ -330,9 +325,10 @@ function renderizarPlacar() {
         btnGol.innerText = "⚽ Chutar pro Gol! (Ad)";
     }
 
-    // Inicialização na ordem certa
-    ouvirPlacarRealtime();
-    carregarDadosDosTimes();
+    // 🟢 AJUSTE DE SINCRONISMO: Primeiro o Sheets carrega, depois o Firebase começa a escutar os gols
+    carregarDadosDosTimes().then(() => {
+        ouvirPlacarRealtime();
+    });
 </script>
 </body>
 </html>
