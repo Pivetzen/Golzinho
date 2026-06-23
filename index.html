@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Golzinho Realtime - Arena Yandex</title>
+    <title>Golzinho Realtime - Arena CrazyGames</title>
     
-    <script src="https://yandex.ru/games/sdk/v2"></script>
+    <!-- 1. SDK OFICIAL DA CRAZYGAMES (Substituindo a Yandex) -->
+    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
     
     <style>
         :root {
@@ -172,17 +173,17 @@
     let dbDataCache = {}; 
     let mapaTimes = {}; 
     let regiaoAtual = 'todos';
-    let ysdkInstance = null; // Guardará a instância da SDK da Yandex
+    let crazyGamesSDK = null; // Instância da SDK
 
     // ==========================================
-    // 🕹️ INICIALIZAÇÃO DA YANDEX GAMES SDK
+    // 🕹️ INICIALIZAÇÃO DA CRAZYGAMES SDK
     // ==========================================
-    if (typeof YaGames !== "undefined") {
-        YaGames.init().then(ysdk => {
-            console.log('Yandex Games SDK inicializada com sucesso.');
-            ysdkInstance = ysdk;
+    if (typeof window.CrazyGames !== "undefined" && window.CrazyGames.SDK) {
+        window.CrazyGames.SDK.init().then(sdk => {
+            console.log('CrazyGames SDK inicializada com sucesso.');
+            crazyGamesSDK = sdk;
         }).catch(err => {
-            console.error('Erro ao inicializar Yandex SDK:', err);
+            console.error('Erro ao inicializar CrazyGames SDK:', err);
         });
     }
 
@@ -268,7 +269,7 @@
     };
 
     // ==========================================
-    // 🎬 LÓGICA DE CHUTE COM VIDEO RECOMPENSADO YANDEX
+    // 🎬 LÓGICA DE CHUTE COM REWARDED ADS CRAZYGAMES
     // ==========================================
     btnGol.addEventListener('click', () => {
         const timeSelecionado = selectTime.value;
@@ -278,33 +279,27 @@
         }
 
         btnGol.disabled = true;
-        btnGol.innerText = "⚡ Preparando Transmissão...";
+        btnGol.innerText = "⚡ Carregando Anúncio...";
 
-        // Se a SDK da Yandex estiver ativa (Rodando no ecossistema Yandex)
-        if (ysdkInstance) {
-            ysdkInstance.adv.showRewardedVideo({
-                callbacks: {
-                    onOpen: () => {
-                        console.log('Vídeo de recompensa aberto.');
-                    },
-                    onRewarded: () => {
-                        // 🟢 BLINDADO: O gol só é chamado se o callback de recompensa for disparado com sucesso!
-                        concluirGol(timeSelecionado);
-                    },
-                    onClose: () => {
-                        console.log('Vídeo fechado.');
-                        restaurarBotaoChute();
-                    },
-                    onError: (e) => {
-                        console.error('Erro ao exibir vídeo recompensado:', e);
-                        alert("Não foi possível carregar o vídeo neste momento.");
-                        restaurarBotaoChute();
-                    }
+        // Se a SDK da CrazyGames carregou com sucesso
+        if (crazyGamesSDK && crazyGamesSDK.ad) {
+            crazyGamesSDK.ad.requestAd("rewarded", {
+                adStarted: () => {
+                    console.log("O anúncio recompensado começou.");
+                },
+                adFinished: () => {
+                    // 🟢 COMPORTAMENTO IDEAL: O gol só é computado se o anúncio terminar com sucesso!
+                    concluirGol(timeSelecionado);
+                },
+                adError: (error) => {
+                    console.error("Erro no anúncio ou o usuário fechou antes da hora:", error);
+                    alert("⚠️ Você precisa assistir ao vídeo completo para validar o gol!");
+                    restaurarBotaoChute();
                 }
             });
         } else {
-            // Fallback Local / Modo Desenvolvedor (Se testar fora da plataforma Yandex)
-            console.log("SDK não detetada. Simulando comportamento de sucesso para desenvolvimento.");
+            // Fallback amigável caso a SDK falhe ou adblock impeça o script global
+            console.log("Ambiente local/AdBlock ativo. Simulando fluxo.");
             concluirGol(timeSelecionado);
         }
     });
@@ -314,7 +309,7 @@
         runTransaction(golRef, (currentGols) => {
             return (currentGols || 0) + 1;
         }).then(() => {
-            alert(`⚽ GOOOL CONVALIDADO! Vídeo assistido! +1 golo para o ${timeSelecionado}!`);
+            alert(`⚽ GOOOL CONVALIDADO! +1 ponto para o ${timeSelecionado}!`);
             restaurarBotaoChute();
         }).catch(err => {
             console.error("Transação rejeitada via Firebase:", err);
