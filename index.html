@@ -8,6 +8,7 @@
 
     <title>Golzinho Realtime - Arena</title>
     
+    <!-- 🟢 SCRIPT OFICIAL DA MONETAG (Substitua o data-zone pelo seu Zone ID do painel) -->
     <script src="https://alwingulla.com/act/files/tag.min.js" data-zone="8888888" async data-cfasync="false"></script>
     
     <style>
@@ -176,13 +177,10 @@
     let regiaoAtual = 'todos';
 
     // ==========================================
-    // 🎛️ CONFIGURAÇÃO DO ID DA MONETAG
+    // 🎛️ SEU SCRIPT DE INTEGRALIZAÇÃO DA MONETAG
     // ==========================================
-    const MONETAG_ZONE_ID = 8888888; // 👈 AJUSTE: Mude este número para o seu Zone ID real gerado no painel da Monetag
+    const MONETAG_ZONE_ID = 8888888; // 👈 AJUSTE IMPORTANTE: Ponha o seu Zone ID real gerado na Monetag aqui
 
-    // ==========================================
-    // 📊 INTEGRAÇÃO DO GOOGLE SHEETS
-    // ==========================================
     async function carregarDadosDosTimes() {
         try {
             const response = await fetch(URL_PLANILHA_API);
@@ -191,7 +189,6 @@
             selectTime.innerHTML = '<option value="">-- Selecione seu Clube --</option>';
             
             times.forEach(t => {
-                // Guarda usando trim() para evitar incompatibilidade por espaços invisíveis
                 mapaTimes[t.nome.trim()] = t; 
                 
                 const option = document.createElement('option');
@@ -213,9 +210,6 @@
         return `<span>${emblema}</span>`;
     }
 
-    // ==========================================
-    // 🔄 FILTROS & BANCO DE DADOS REALTIME
-    // ==========================================
     function ouvirPlacarRealtime() {
         const timesRef = ref(db, 'times');
         onValue(timesRef, (snapshot) => {
@@ -269,7 +263,7 @@
     };
 
     // ==========================================
-    // 🎬 LOGICA DE CHUTE COM MONETAG AD
+    // 🎬 LOGICA DE CHUTE COMPLETA COM MONETAG AD RECOMPENSADO
     // ==========================================
     btnGol.addEventListener('click', () => {
         const timeSelecionado = selectTime.value;
@@ -279,40 +273,34 @@
         }
 
         btnGol.disabled = true;
-        btnGol.innerText = "⚡ Preparando Chute...";
+        btnGol.innerText = "⚡ Carregando Transmissão (Ad)...";
 
+        // Chama a SDK oficial da Monetag para renderizar o banner/interstitial premiado
         if (typeof window.showInteract === "function") {
             window.showInteract(MONETAG_ZONE_ID)
                 .then(() => {
+                    // O usuário interagiu/viu o anúncio com sucesso -> Convalida o gol!
                     concluirGol(timeSelecionado);
                 })
                 .catch((error) => {
-                    console.warn("Anúncio pulado ou bloqueado:", error);
-                    acionarFallbackSimulado(timeSelecionado);
+                    console.warn("Monetag recusada ou AdBlock ativo:", error);
+                    // Em ambiente de produção real com AdBlock, você escolhe se dá o gol ou bloqueia:
+                    alert("⚠️ Para chutar, por favor desative o AdBlocker do navegador!");
+                    restaurarBotaoChute();
                 });
         } else {
-            acionarFallbackSimulado(timeSelecionado);
+            // Caso a tag não carregue localmente no ambiente de desenvolvimento (Localhost)
+            console.log("Modo desenvolvedor ativo: simulando anúncio premiado.");
+            concluirGol(timeSelecionado);
         }
     });
-
-    function acionarFallbackSimulado(time) {
-        setTimeout(() => {
-            const assistiu = confirm("[RODADA DE TESTE]\nDeseja assistir à simulação do anúncio premiado para validar o gol?");
-            if (assistiu) {
-                concluirGol(time);
-            } else {
-                alert("❌ Chute pra fora! Você fechou o anúncio antes de pontuar.");
-                restaurarBotaoChute();
-            }
-        }, 600);
-    }
 
     function concluirGol(timeSelecionado) {
         const golRef = ref(db, `times/${timeSelecionado}/gols`);
         runTransaction(golRef, (currentGols) => {
             return (currentGols || 0) + 1;
         }).then(() => {
-            alert(`⚽ GOOOL CONVALIDADO! Gol computado para o ${timeSelecionado}!`);
+            alert(`⚽ GOOOL CONVALIDADO! O anúncio premiado somou +1 ponto para o ${timeSelecionado}!`);
             restaurarBotaoChute();
         }).catch(err => {
             console.error("Transação rejeitada via Firebase:", err);
@@ -325,7 +313,6 @@
         btnGol.innerText = "⚽ Chutar pro Gol! (Ad)";
     }
 
-    // 🟢 AJUSTE DE SINCRONISMO: Primeiro o Sheets carrega, depois o Firebase começa a escutar os gols
     carregarDadosDosTimes().then(() => {
         ouvirPlacarRealtime();
     });
