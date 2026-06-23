@@ -224,7 +224,7 @@
         });
     }
 
-    function renderizarPlacar() {
+function renderizarPlacar() {
         if (!dbDataCache || Object.keys(dbDataCache).length === 0) {
             dadosPlacar.innerHTML = '<div style="color:#666; padding:10px;">Nenhum gol registrado nesta região.</div>';
             return;
@@ -235,7 +235,9 @@
             const infoSheets = mapaTimes[nomeTime];
             if (!infoSheets) return true; 
             if (regiaoAtual === 'todos') return true;
-            return infoSheets.regiao === regiaoAtual;
+            
+            // 🟢 CORREÇÃO: Força a comparação de ambas em letras minúsculas para evitar erros
+            return String(infoSheets.regiao).toLowerCase().trim() === String(regiaoAtual).toLowerCase().trim();
         });
 
         if (timesFiltrados.length === 0) {
@@ -244,7 +246,7 @@
         }
 
         timesFiltrados
-            .sort((a, b) => dbDataCache[b].gols - dbDataCache[a].gols)
+            .sort((a, b) => (dbDataCache[b].gols || 0) - (dbDataCache[a].gols || 0))
             .forEach(nomeTime => {
                 const info = mapaTimes[nomeTime] || { emblema: '⚽', estado: '??' };
                 dadosPlacar.innerHTML += `
@@ -254,7 +256,7 @@
                             <strong>${nomeTime}</strong>
                             <span class="state-badge">${info.estado.toUpperCase()}</span>
                         </div>
-                        <span class="goals-counter">${dbDataCache[nomeTime].gols} GOLS</span>
+                        <span class="goals-counter">${dbDataCache[nomeTime].gols || 0} GOLS</span>
                     </div>
                 `;
             });
