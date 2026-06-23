@@ -10,15 +10,16 @@
     <style>
         :root {
             --primary-color: #2b8a3e;
-            --stadium-green: #1e522a;
+            --stadium-green: #1a4324;
             --gold: #fcc419;
-            --dark-card: #1a1a1a;
+            --dark-card: #141414;
+            --neon-green: #39ff14;
         }
         
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             text-align: center; 
-            background: linear-gradient(135deg, var(--stadium-green) 0%, #0d2614 100%); 
+            background: radial-gradient(circle at center, var(--stadium-green) 0%, #050f07 100%); 
             color: #fff;
             padding: 15px; 
             margin: 0;
@@ -28,61 +29,85 @@
         .stadium-wrapper {
             max-width: 550px; 
             margin: 20px auto; 
-            background: rgba(26, 26, 26, 0.95); 
+            background: rgba(20, 20, 20, 0.98); 
             padding: 25px; 
-            border-radius: 20px; 
-            border: 3px solid #343a40;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6); 
+            border-radius: 24px; 
+            border: 3px solid #2d2d2d;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(43, 138, 62, 0.15); 
         }
 
-        h1 { font-size: 26px; color: var(--gold); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .subtitle { font-size: 13px; color: #adb5bd; margin-bottom: 25px; }
+        h1 { 
+            font-size: 28px; 
+            color: var(--gold); 
+            margin-bottom: 5px; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.9);
+        }
+        .subtitle { font-size: 13px; color: #a0a0a0; margin-bottom: 25px; font-style: italic; }
 
-        .form-group { text-align: left; margin-bottom: 15px; }
-        label { font-size: 12px; font-weight: bold; text-transform: uppercase; color: #ced4da; display: block; margin-bottom: 5px; }
+        .form-group { text-align: left; margin-bottom: 20px; }
+        label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 6px; letter-spacing: 1px; }
         
         select { 
-            width: 100%; padding: 14px; font-size: 15px; font-weight: 600;
-            background: #2b2b2b; color: #fff; border: 2px solid #495057; border-radius: 8px;
-            cursor: pointer; transition: all 0.3s;
+            width: 100%; padding: 15px; font-size: 16px; font-weight: 600;
+            background: #1e1e1e; color: #fff; border: 2px solid #333; border-radius: 10px;
+            cursor: pointer; transition: all 0.3s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
-        select:focus { border-color: var(--primary-color); outline: none; }
+        select:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 10px rgba(43,138,62,0.5); }
 
         /* Filtros de Regiões */
-        .filter-container { display: flex; justify-content: space-between; gap: 5px; margin-bottom: 15px; }
+        .filter-container { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 15px; }
         .filter-btn { 
-            flex: 1; padding: 8px 3px; font-size: 11px; font-weight: bold; background: #343a40; 
-            border: 1px solid #495057; border-radius: 5px; color: #fff; cursor: pointer; text-transform: uppercase;
+            flex: 1; padding: 10px 2px; font-size: 11px; font-weight: 800; background: #262626; 
+            border: 1px solid #3a3a3a; border-radius: 6px; color: #aaa; cursor: pointer; text-transform: uppercase;
+            transition: all 0.2s;
         }
-        .filter-btn.active { background: var(--primary-color); border-color: #51cf66; }
+        .filter-btn:hover { color: #fff; background: #333; }
+        .filter-btn.active { background: var(--primary-color); border-color: #51cf66; color: #fff; box-shadow: 0 0 8px rgba(43,138,62,0.6); }
 
         /* Botão Chutar Principal */
         .btn-kick { 
-            width: 100%; padding: 18px; font-size: 20px; font-weight: 800; 
-            background: linear-gradient(to bottom, #40c057 0%, #2b8a3e 100%);
-            color: white; border: none; border-radius: 12px; cursor: pointer; 
-            text-transform: uppercase; box-shadow: 0 5px 0 #1e5a29; transition: all 0.1s;
+            width: 100%; padding: 20px; font-size: 22px; font-weight: 900; 
+            background: linear-gradient(to bottom, #51cf66 0%, #2b8a3e 100%);
+            color: white; border: none; border-radius: 14px; cursor: pointer; 
+            text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 6px 0 #1c5c29, 0 12px 20px rgba(0,0,0,0.5); transition: all 0.1s;
+            text-shadow: 0 2px 2px rgba(0,0,0,0.6);
         }
-        .btn-kick:active { transform: translateY(3px); box-shadow: 0 2px 0 #1e5a29; }
-        .btn-kick:disabled { background: #495057; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
+        .btn-kick:not(:disabled):hover { background: linear-gradient(to bottom, #5cdd72 0%, #329e48 100%); }
+        .btn-kick:active { transform: translateY(4px); box-shadow: 0 2px 0 #1c5c29, 0 4px 10px rgba(0,0,0,0.5); }
+        .btn-kick:disabled { background: #333 !important; box-shadow: none !important; cursor: not-allowed; opacity: 0.4; color: #777; transform: none; }
 
-        /* Placar Gamificado */
+        /* Placar Gamificado Retro-LED */
         .scoreboard { 
-            margin-top: 30px; background: #000; border: 4px solid #343a40; 
-            border-radius: 12px; padding: 15px; text-align: left; font-family: 'Courier New', Courier, monospace;
+            margin-top: 30px; background: #080808; border: 4px solid #222; 
+            border-radius: 16px; padding: 20px; text-align: left;
+            box-shadow: inset 0 0 15px rgba(0,0,0,1), 0 4px 10px rgba(0,0,0,0.5);
         }
-        .scoreboard h3 { margin-top: 0; color: var(--gold); border-bottom: 1px dashed #343a40; padding-bottom: 8px; font-size: 16px; }
+        .scoreboard h3 { 
+            margin-top: 0; color: #fff; border-bottom: 2px solid #1a1a1a; 
+            padding-bottom: 10px; font-size: 15px; letter-spacing: 1px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .live-indicator { font-size: 10px; background: #e03131; padding: 3px 7px; border-radius: 4px; color: #fff; animation: blink 1.5s infinite; font-family: sans-serif; font-weight: 900; }
         
+        #dadosPlacar { font-family: 'Courier New', Courier, monospace; }
+
         .row-team { 
-            display: flex; justify-content: space-between; padding: 10px 5px; 
-            border-bottom: 1px solid #1a1a1a; align-items: center; font-size: 15px;
+            display: flex; justify-content: space-between; padding: 12px 5px; 
+            border-bottom: 1px dashed #1f1f1f; align-items: center; font-size: 16px;
+            animation: fadeIn 0.3s ease-in;
         }
         .row-team:last-child { border: none; }
         .team-meta { display: flex; align-items: center; }
-        .emblem { font-size: 22px; margin-right: 12px; display: inline-block; width: 30px; text-align: center; }
-        .emblem img { width: 30px; height: 30px; object-fit: contain; }
-        .state-badge { background: #343a40; font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-left: 8px; color: #ced4da; }
-        .goals-counter { color: #51cf66; font-weight: bold; font-size: 16px; }
+        .emblem { font-size: 22px; margin-right: 12px; display: inline-block; width: 32px; text-align: center; }
+        .emblem img { width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        .state-badge { background: #222; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 10px; color: #aaa; border: 1px solid #333; }
+        .goals-counter { color: var(--neon-green); font-weight: bold; font-size: 18px; text-shadow: 0 0 6px rgba(57, 255, 20, 0.5); }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -92,7 +117,7 @@
     <div class="subtitle">Escolha seu clube e marque gols assistindo à rodada!</div>
     
     <div class="form-group">
-        <label>Selecione o Time:</label>
+        <label>Selecione seu Time:</label>
         <select id="selectTime">
             <option value="">Carregando clubes parceiros...</option>
         </select>
@@ -101,7 +126,10 @@
     <button class="btn-kick" id="btnGol" disabled>⚽ Chutar pro Gol! (Ad)</button>
 
     <div class="scoreboard">
-        <h3>🏆 RANKING NACIONAL GERAL</h3>
+        <h3>
+            <span>🏆 RANKING NACIONAL GERAL</span>
+            <span class="live-indicator">● LIVE</span>
+        </h3>
         
         <label style="margin-bottom: 8px;">Filtrar Placar por Região:</label>
         <div class="filter-container">
@@ -113,7 +141,7 @@
             <button class="filter-btn" onclick="filtrarRegiao('norte')">NO</button>
         </div>
 
-        <div id="dadosPlacar">Aguardando sinal dos estádios...</div>
+        <div id="dadosPlacar">Sintonizando refletores da arena...</div>
     </div>
 </div>
 
@@ -121,7 +149,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // INSIRA O URL DO SEU GOOGLE APPS SCRIPT AQUI
     const URL_PLANILHA_API = "https://script.google.com/macros/s/AKfycbxMpYkz_6GhN02m2XqlQheQM3UbuoM7Qfuz5I-IIDELqsyE7fWgx47cCvkcyB-0s_RzRA/exec";
 
     const firebaseConfig = {
@@ -154,7 +181,6 @@
     window.googletag = window.googletag || { cmd: [] };
     
     googletag.cmd.push(() => {
-        // Substitua pelo seu ID de Bloco de Anúncio Premiado do Google Ad Manager / AdSense posterior
         rewardedSlot = googletag.defineOutOfPageSlot(
             '/6355419/txt_rewarded_ad_unit_id', 
             googletag.enums.OutOfPageFormat.REWARDED
@@ -163,12 +189,10 @@
         if (rewardedSlot) {
             rewardedSlot.addService(googletag.pubads());
             
-            // Ouvir quando o usuário ganha o prêmio por assistir tudo
             googletag.pubads().addEventListener('rewardedSlotGranted', (event) => {
                 recompensaConcedida = true;
             });
 
-            // Ouvir quando o anúncio fecha
             googletag.pubads().addEventListener('rewardedSlotClosed', (event) => {
                 processarFechamentoAd();
             });
@@ -188,16 +212,16 @@
             selectTime.innerHTML = '<option value="">-- Selecione seu Clube --</option>';
             
             times.forEach(t => {
-                mapaTimes[t.nome] = t; // Cache do objeto do time completo
+                mapaTimes[t.nome] = t; 
                 
                 const option = document.createElement('option');
                 option.value = t.nome;
-                option.textContent = `${t.emblema} ${t.nome} (${t.estado})`;
+                option.textContent = `${t.emblema} ${t.nome} (${t.estado.toUpperCase()})`;
                 selectTime.appendChild(option);
             });
 
             btnGol.disabled = false;
-            ouvirPlacarRealtime(); // Só abre o realtime depois de mapear os times
+            renderizarPlacar(); 
         } catch (error) {
             console.error("Erro ao sincronizar com o Sheets:", error);
             dadosPlacar.innerText = "Erro ao sincronizar dados da liga.";
@@ -222,28 +246,33 @@
     }
 
     function renderizarPlacar() {
+        if (!dbDataCache || Object.keys(dbDataCache).length === 0) {
+            dadosPlacar.innerHTML = '<div style="color:#666; padding:10px;">Nenhum gol registrado nesta região.</div>';
+            return;
+        }
+
         dadosPlacar.innerHTML = '';
         const timesFiltrados = Object.keys(dbDataCache).filter(nomeTime => {
             const infoSheets = mapaTimes[nomeTime];
-            if (!infoSheets) return false;
+            if (!infoSheets) return true; // Mantém no placar caso já tenha gols no Firebase
             if (regiaoAtual === 'todos') return true;
             return infoSheets.regiao === regiaoAtual;
         });
 
         if (timesFiltrados.length === 0) {
-            dadosPlacar.innerHTML = '<div style="color:#666; padding:10px;">Nenhum gol registrado nesta região.</div>';
+            dadosPlacar.innerHTML = `<div style="color:#555; padding:10px;">Nenhum gol em ${regiaoAtual.toUpperCase()}.</div>`;
             return;
         }
 
         timesFiltrados
             .sort((a, b) => dbDataCache[b].gols - dbDataCache[a].gols)
             .forEach(nomeTime => {
-                const info = mapaTimes[nomeTime];
+                const info = mapaTimes[nomeTime] || { emblema: '⚽', estado: '??' };
                 dadosPlacar.innerHTML += `
                     <div class="row-team">
                         <div class="team-meta">
                             <div class="emblem">${exibirEmblema(info.emblema)}</div>
-                            <strong>${info.nome}</strong>
+                            <strong>${nomeTime}</strong>
                             <span class="state-badge">${info.estado.toUpperCase()}</span>
                         </div>
                         <span class="goals-counter">${dbDataCache[nomeTime].gols} GOLS</span>
@@ -255,12 +284,12 @@
     window.filtrarRegiao = function(regiao) {
         regiaoAtual = regiao;
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
+        if (event && event.target) event.target.classList.add('active');
         renderizarPlacar();
     };
 
     // ==========================================
-    // 🎬 LOGICA DE CHUTE E DISPARO DE AD
+    // 🎬 LOGICA DE CHUTE E CORREÇÃO DO AD
     // ==========================================
     btnGol.addEventListener('click', () => {
         const timeSelecionado = selectTime.value;
@@ -273,13 +302,13 @@
         btnGol.innerText = "⚡ Preparando Chute...";
         recompensaConcedida = false;
 
-        // Dispara o anúncio oficial do Google GPT se carregado, senão cai na simulação de teste
-        if (window.googletag && googletag.pubadsReady) {
+        // CORREÇÃO: Valida se o GPT do Google está totalmente ativo e com anúncios prontos
+        if (window.googletag && googletag.pubadsReady && typeof googletag.display === "function") {
             googletag.cmd.push(() => { googletag.display(rewardedSlot); });
         } else {
-            // Fallback de desenvolvimento local
+            // Se o bloco real não responder (ambiente local ou AdBlock), aciona o mock seguro
             setTimeout(() => {
-                const assistiu = confirm("[AMBIENTE DESENVOLVIMENTO]\nDeseja simular assistir ao anúncio completo para validar o gol?");
+                const assistiu = confirm("[RODADA DE TESTE]\nDeseja assistir à simulação do anúncio premiado para validar o gol?");
                 if(assistiu) recompensaConcedida = true;
                 processarFechamentoAd();
             }, 800);
@@ -295,7 +324,7 @@
                 return (currentGols || 0) + 1;
             }).then(() => {
                 alert(`⚽ GOOOL CONVALIDADO! Gol computado para o ${timeSelecionado}!`);
-            }).catch(err => console.error("Fraude retida pelas regras de segurança:", err));
+            }).catch(err => console.error("Segurança: transação rejeitada.", err));
         } else {
             alert("❌ Chute pra fora! Você fechou a publicidade antes do tempo de validação.");
         }
@@ -303,12 +332,13 @@
         btnGol.disabled = false;
         btnGol.innerText = "⚽ Chutar pro Gol! (Ad)";
         
-        // Recarrega um novo anúncio em segundo plano para o próximo clique
-        if (window.googletag) {
+        if (window.googletag && googletag.pubadsReady) {
             googletag.cmd.push(() => { googletag.pubads().refresh([rewardedSlot]); });
         }
     }
 
+    // Inicialização na ordem certa
+    ouvirPlacarRealtime();
     carregarDadosDosTimes();
 </script>
 </body>
