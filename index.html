@@ -3,34 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo do Golzinho</title>
+    <title>Golzinho Realtime - Arena</title>
+    
+    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+    
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        select, button { width: 100%; padding: 12px; margin: 10px 0; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
-        button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #218838; }
-        .placar { margin-top: 20px; text-align: left; }
-        .time-linha { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; align-items: center; }
-        .bandeira-img { width: 24px; height: 24px; object-fit: contain; margin-right: 8px; }
-        .time-info { display: flex; align-items: center; }
+        :root {
+            --primary-color: #2b8a3e;
+            --stadium-green: #1e522a;
+            --gold: #fcc419;
+            --dark-card: #1a1a1a;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            background: linear-gradient(135deg, var(--stadium-green) 0%, #0d2614 100%); 
+            color: #fff;
+            padding: 15px; 
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .stadium-wrapper {
+            max-width: 550px; 
+            margin: 20px auto; 
+            background: rgba(26, 26, 26, 0.95); 
+            padding: 25px; 
+            border-radius: 20px; 
+            border: 3px solid #343a40;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6); 
+        }
+
+        h1 { font-size: 26px; color: var(--gold); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .subtitle { font-size: 13px; color: #adb5bd; margin-bottom: 25px; }
+
+        .form-group { text-align: left; margin-bottom: 15px; }
+        label { font-size: 12px; font-weight: bold; text-transform: uppercase; color: #ced4da; display: block; margin-bottom: 5px; }
+        
+        select { 
+            width: 100%; padding: 14px; font-size: 15px; font-weight: 600;
+            background: #2b2b2b; color: #fff; border: 2px solid #495057; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        select:focus { border-color: var(--primary-color); outline: none; }
+
+        /* Filtros de Regiões */
+        .filter-container { display: flex; justify-content: space-between; gap: 5px; margin-bottom: 15px; }
+        .filter-btn { 
+            flex: 1; padding: 8px 3px; font-size: 11px; font-weight: bold; background: #343a40; 
+            border: 1px solid #495057; border-radius: 5px; color: #fff; cursor: pointer; text-transform: uppercase;
+        }
+        .filter-btn.active { background: var(--primary-color); border-color: #51cf66; }
+
+        /* Botão Chutar Principal */
+        .btn-kick { 
+            width: 100%; padding: 18px; font-size: 20px; font-weight: 800; 
+            background: linear-gradient(to bottom, #40c057 0%, #2b8a3e 100%);
+            color: white; border: none; border-radius: 12px; cursor: pointer; 
+            text-transform: uppercase; box-shadow: 0 5px 0 #1e5a29; transition: all 0.1s;
+        }
+        .btn-kick:active { transform: translateY(3px); box-shadow: 0 2px 0 #1e5a29; }
+        .btn-kick:disabled { background: #495057; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
+
+        /* Placar Gamificado */
+        .scoreboard { 
+            margin-top: 30px; background: #000; border: 4px solid #343a40; 
+            border-radius: 12px; padding: 15px; text-align: left; font-family: 'Courier New', Courier, monospace;
+        }
+        .scoreboard h3 { margin-top: 0; color: var(--gold); border-bottom: 1px dashed #343a40; padding-bottom: 8px; font-size: 16px; }
+        
+        .row-team { 
+            display: flex; justify-content: space-between; padding: 10px 5px; 
+            border-bottom: 1px solid #1a1a1a; align-items: center; font-size: 15px;
+        }
+        .row-team:last-child { border: none; }
+        .team-meta { display: flex; align-items: center; }
+        .emblem { font-size: 22px; margin-right: 12px; display: inline-block; width: 30px; text-align: center; }
+        .emblem img { width: 30px; height: 30px; object-fit: contain; }
+        .state-badge { background: #343a40; font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-left: 8px; color: #ced4da; }
+        .goals-counter { color: #51cf66; font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>⚽ Clique e Marque Gol!</h2>
+<div class="stadium-wrapper">
+    <h1>🏟️ Arena Golzinho</h1>
+    <div class="subtitle">Escolha seu clube e marque gols assistindo à rodada!</div>
     
-    <label for="selectTime">Escolha seu Time:</label>
-    <select id="selectTime">
-        <option value="">Carregando times da planilha...</option>
-    </select>
+    <div class="form-group">
+        <label>Selecione o Time:</label>
+        <select id="selectTime">
+            <option value="">Carregando clubes parceiros...</option>
+        </select>
+    </div>
 
-    <button id="btnGol" disabled>Chutar pro Gol! (Ver Anúncio)</button>
+    <button class="btn-kick" id="btnGol" disabled>⚽ Chutar pro Gol! (Ad)</button>
 
-    <div class="placar">
-        <h3>🏆 Placar Geral (Tempo Real)</h3>
-        <div id="dadosPlacar">Carregando placar...</div>
+    <div class="scoreboard">
+        <h3>🏆 RANKING NACIONAL GERAL</h3>
+        
+        <label style="margin-bottom: 8px;">Filtrar Placar por Região:</label>
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filtrarRegiao('todos')">Todos</button>
+            <button class="filter-btn" onclick="filtrarRegiao('nordeste')">NE</button>
+            <button class="filter-btn" onclick="filtrarRegiao('sudeste')">SE</button>
+            <button class="filter-btn" onclick="filtrarRegiao('sul')">SUL</button>
+            <button class="filter-btn" onclick="filtrarRegiao('centro-oeste')">CO</button>
+            <button class="filter-btn" onclick="filtrarRegiao('norte')">NO</button>
+        </div>
+
+        <div id="dadosPlacar">Agardando sinal dos estádios...</div>
     </div>
 </div>
 
@@ -38,8 +121,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // LINK DO SEU GOOGLE APPS SCRIPT
-    const URL_PLANILHA_API = "https://script.google.com/macros/s/AKfycbxMpYkz_6GhN02m2XqlQheQM3UbuoM7Qfuz5I-IIDELqsyE7fWgx47cCvkcyB-0s_RzRA/exec";
+    // INSIRA O URL DO SEU GOOGLE APPS SCRIPT AQUI
+    const URL_PLANILHA_API = "SUA_URL_DO_APPS_SCRIPT";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBOmB90lBIwHCZMaUIMrqWXQb_bj5VrKyE",
@@ -58,105 +141,175 @@
     const selectTime = document.getElementById('selectTime');
     const dadosPlacar = document.getElementById('dadosPlacar');
 
-    // Dicionário local para guardar a relação de Nome -> Bandeira vinda do Sheets
-    let mapaBandeiras = {};
+    let dbDataCache = {}; 
+    let mapaTimes = {}; 
+    let regiaoAtual = 'todos';
 
-    // 1. BUSCAR TIMES DO GOOGLE SHEETS
-    async function carregarTimesDoSheets() {
+    // ==========================================
+    // 🎛️ CONFIGURAÇÃO DE ADS REAIS (GOOGLE GPT)
+    // ==========================================
+    let rewardedSlot;
+    let recompensaConcedida = false;
+
+    window.googletag = window.googletag || { cmd: [] };
+    
+    googletag.cmd.push(() => {
+        // Substitua pelo seu ID de Bloco de Anúncio Premiado do Google Ad Manager / AdSense posterior
+        rewardedSlot = googletag.defineOutOfPageSlot(
+            '/6355419/txt_rewarded_ad_unit_id', 
+            googletag.enums.OutOfPageFormat.REWARDED
+        );
+
+        if (rewardedSlot) {
+            rewardedSlot.addService(googletag.pubads());
+            
+            // Ouvir quando o usuário ganha o prêmio por assistir tudo
+            googletag.pubads().addEventListener('rewardedSlotGranted', (event) => {
+                recompensaConcedida = true;
+            });
+
+            // Ouvir quando o anúncio fecha
+            googletag.pubads().addEventListener('rewardedSlotClosed', (event) => {
+                processarFechamentoAd();
+            });
+
+            googletag.enableServices();
+        }
+    });
+
+    // ==========================================
+    // 📊 INTEGRAÇÃO DO GOOGLE SHEETS
+    // ==========================================
+    async function carregarDadosDosTimes() {
         try {
             const response = await fetch(URL_PLANILHA_API);
             const times = await response.json();
             
-            selectTime.innerHTML = ''; // Limpa o "Carregando..."
+            selectTime.innerHTML = '<option value="">-- Selecione seu Clube --</option>';
             
-            times.forEach(time => {
-                // Guarda no mapa para usar no placar depois
-                mapaBandeiras[time.nome] = time.bandeira;
+            times.forEach(t => {
+                mapaTimes[t.nome] = t; // Cache do objeto do time completo
                 
-                // Cria a opção no select
                 const option = document.createElement('option');
-                option.value = time.nome;
-                option.textContent = `${time.bandeira} ${time.nome}`;
+                option.value = t.nome;
+                option.textContent = `${t.emblema} ${t.nome} (${t.estado})`;
                 selectTime.appendChild(option);
             });
 
-            btnGol.disabled = false; // Libera o botão após carregar
+            btnGol.disabled = false;
+            ouvirPlacarRealtime(); // Só abre o realtime depois de mapear os times
         } catch (error) {
-            console.error("Erro ao carregar times da planilha:", error);
-            selectTime.innerHTML = '<option>Erro ao carregar os times</option>';
+            console.error("Erro ao sincronizar com o Sheets:", error);
+            dadosPlacar.innerText = "Erro ao sincronizar dados da liga.";
         }
     }
 
-    // Função auxiliar para renderizar a bandeira (seja emoji ou link de imagem)
-    function renderizarBandeira(bandeira) {
-        if (!bandeira) return '';
-        if (bandeira.startsWith('http://') || bandeira.startsWith('https://')) {
-            return `<img src="${bandeira}" class="bandeira-img" alt="Bandeira">`;
-        }
-        return `<span style="margin-right: 8px; font-size: 20px;">${bandeira}</span>`;
+    function exibirEmblema(emblema) {
+        if (!emblema) return '⚽';
+        if (emblema.startsWith('http')) return `<img src="${emblema}" alt="Escudo">`;
+        return `<span>${emblema}</span>`;
     }
 
-    // 2. ESCUTAR GOLS EM TEMPO REAL (FIREBASE)
-    const timesRef = ref(db, 'times');
-    onValue(timesRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            dadosPlacar.innerHTML = '';
-            Object.keys(data)
-                .sort((a, b) => data[b].gols - data[a].gols)
-                .forEach(time => {
-                    const bandeira = mapaBandeiras[time] || '⚽'; // Fallback caso não ache
-                    dadosPlacar.innerHTML += `
-                        <div class="time-linha">
-                            <div class="time-info">
-                                ${renderizarBandeira(bandeira)}
-                                <strong>${time}</strong>
-                            </div>
-                            <span>⚽ ${data[time].gols} gols</span>
+    // ==========================================
+    // 🔄 FILTROS & BANCO DE DADOS REALTIME
+    // ==========================================
+    function ouvirPlacarRealtime() {
+        const timesRef = ref(db, 'times');
+        onValue(timesRef, (snapshot) => {
+            dbDataCache = snapshot.val() || {};
+            renderizarPlacar();
+        });
+    }
+
+    function renderizarPlacar() {
+        dadosPlacar.innerHTML = '';
+        const timesFiltrados = Object.keys(dbDataCache).filter(nomeTime => {
+            const infoSheets = mapaTimes[nomeTime];
+            if (!infoSheets) return false;
+            if (regiaoAtual === 'todos') return true;
+            return infoSheets.regiao === regiaoAtual;
+        });
+
+        if (timesFiltrados.length === 0) {
+            dadosPlacar.innerHTML = '<div style="color:#666; padding:10px;">Nenhum gol registrado nesta região.</div>';
+            return;
+        }
+
+        timesFiltrados
+            .sort((a, b) => dbDataCache[b].gols - dbDataCache[a].gols)
+            .forEach(nomeTime => {
+                const info = mapaTimes[nomeTime];
+                dadosPlacar.innerHTML += `
+                    <div class="row-team">
+                        <div class="team-meta">
+                            <div class="emblem">${exibirEmblema(info.emblema)}</div>
+                            <strong>${info.nome}</strong>
+                            <span class="state-badge">${info.estado.toUpperCase()}</span>
                         </div>
-                    `;
-                });
-        }
-    });
+                        <span class="goals-counter">${dbDataCache[nomeTime].gols} GOLS</span>
+                    </div>
+                `;
+            });
+    }
 
-    // 3. LÓGICA DO CLIQUE E DO REWARDED AD
+    window.filtrarRegiao = function(regiao) {
+        regiaoAtual = regiao;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        renderizarPlacar();
+    };
+
+    // ==========================================
+    // 🎬 LOGICA DE CHUTE E DISPARO DE AD
+    // ==========================================
     btnGol.addEventListener('click', () => {
         const timeSelecionado = selectTime.value;
-        if(!timeSelecionado) return;
-        
-        btnGol.disabled = true;
-        btnGol.innerText = "Carregando anúncio...";
+        if (!timeSelecionado) {
+            alert("Selecione um time para chutar!");
+            return;
+        }
 
-        simularRewardedAd().then((adAssistidoComSucesso) => {
-            if (adAssistidoComSucesso) {
-                const golRef = ref(db, `times/${timeSelecionado}/gols`);
-                runTransaction(golRef, (currentGols) => {
-                    return (currentGols || 0) + 1;
-                }).then(() => {
-                    alert(`GOOOOL do ${timeSelecionado}! Computado com sucesso.`);
-                }).catch((error) => {
-                    console.error("Erro ao computar gol: ", error);
-                });
-            } else {
-                alert("Você fechou o anúncio antes do fim! O gol não foi contabilizado.");
-            }
-            
-            btnGol.disabled = false;
-            btnGol.innerText = "Chutar pro Gol! (Ver Anúncio)";
-        });
+        btnGol.disabled = true;
+        btnGol.innerText = "⚡ Preparando Chute...";
+        recompensaConcedida = false;
+
+        // Dispara o anúncio oficial do Google GPT se carregado, senão cai na simulação de teste
+        if (window.googletag && googletag.pubadsReady) {
+            googletag.cmd.push(() => { googletag.display(rewardedSlot); });
+        } else {
+            // Fallback de desenvolvimento local
+            setTimeout(() => {
+                const assistiu = confirm("[AMBIENTE DESENVOLVIMENTO]\nDeseja simular assistir ao anúncio completo para validar o gol?");
+                if(assistiu) recompensaConcedida = true;
+                processarFechamentoAd();
+            }, 800);
+        }
     });
 
-    function simularRewardedAd() {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const assistiu = confirm("[Simulação de Anúncio]\nAssista o vídeo até o final para ganhar o gol. Deseja concluir o anúncio?");
-                resolve(assistiu);
-            }, 1000);
-        });
+    function processarFechamentoAd() {
+        const timeSelecionado = selectTime.value;
+
+        if (recompensaConcedida) {
+            const golRef = ref(db, `times/${timeSelecionado}/gols`);
+            runTransaction(golRef, (currentGols) => {
+                return (currentGols || 0) + 1;
+            }).then(() => {
+                alert(`⚽ GOOOL CONVALIDADO! Gol computado para o ${timeSelecionado}!`);
+            }).catch(err => console.error("Fraude retida pelas regras de segurança:", err));
+        } else {
+            alert("❌ Chute pra fora! Você fechou a publicidade antes do tempo de validação.");
+        }
+
+        btnGol.disabled = false;
+        btnGol.innerText = "⚽ Chutar pro Gol! (Ad)";
+        
+        // Recarrega um novo anúncio em segundo plano para o próximo clique
+        if (window.googletag) {
+            googletag.cmd.push(() => { googletag.pubads().refresh([rewardedSlot]); });
+        }
     }
 
-    // Inicializa a carga do Sheets
-    carregarTimesDoSheets();
+    carregarDadosDosTimes();
 </script>
 </body>
 </html>
