@@ -6,7 +6,6 @@
 
     <title>Golzinho Realtime - Arena CrazyGames</title>
     
-    <!-- 1. SDK OFICIAL DA CRAZYGAMES (Substituindo a Yandex) -->
     <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
     
     <style>
@@ -150,6 +149,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    // 🛡️ ADICIONADO: Importação do SDK do App Check
+    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
     const URL_PLANILHA_API = "https://script.google.com/macros/s/AKfycbxMpYkz_6GhN02m2XqlQheQM3UbuoM7Qfuz5I-IIDELqsyE7fWgx47cCvkcyB-0s_RzRA/exec";
 
@@ -163,7 +164,16 @@
         appId: "1:685138662724:web:760dabe9dc52fed8c1b311"
     };
 
+    // Inicializa o Firebase
     const app = initializeApp(firebaseConfig);
+
+    // 🛡️ ADICIONADO: Inicialização do App Check. 
+    // ATENÇÃO: Substitua 'SUA_CHAVE_RECAPTCHA_AQUI' pela "Chave do Site" gerada no Google reCAPTCHA v3
+    const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider('SUA_CHAVE_RECAPTCHA_AQUI'),
+        isTokenAutoRefreshEnabled: true
+    });
+
     const db = getDatabase(app);
 
     const btnGol = document.getElementById('btnGol');
@@ -173,7 +183,7 @@
     let dbDataCache = {}; 
     let mapaTimes = {}; 
     let regiaoAtual = 'todos';
-    let crazyGamesSDK = null; // Instância da SDK
+    let crazyGamesSDK = null;
 
     // ==========================================
     // 🕹️ INICIALIZAÇÃO DA CRAZYGAMES SDK
@@ -281,14 +291,12 @@
         btnGol.disabled = true;
         btnGol.innerText = "⚡ Carregando Anúncio...";
 
-        // Se a SDK da CrazyGames carregou com sucesso
         if (crazyGamesSDK && crazyGamesSDK.ad) {
             crazyGamesSDK.ad.requestAd("rewarded", {
                 adStarted: () => {
                     console.log("O anúncio recompensado começou.");
                 },
                 adFinished: () => {
-                    // 🟢 COMPORTAMENTO IDEAL: O gol só é computado se o anúncio terminar com sucesso!
                     concluirGol(timeSelecionado);
                 },
                 adError: (error) => {
@@ -298,7 +306,6 @@
                 }
             });
         } else {
-            // Fallback amigável caso a SDK falhe ou adblock impeça o script global
             console.log("Ambiente local/AdBlock ativo. Simulando fluxo.");
             concluirGol(timeSelecionado);
         }
