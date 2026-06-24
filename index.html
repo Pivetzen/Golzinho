@@ -5,30 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Golzinho Realtime - Arena</title>
     <script src="https://game-cdn.poki.com/ga/v2.js"></script>
+    
     <style>
-        :root { --primary-color: #2b8a3e; --gold: #fcc419; --stadium-green: #1a4324; }
-        body { font-family: 'Segoe UI', sans-serif; background: radial-gradient(circle, var(--stadium-green) 0%, #050f07 100%); color: #fff; text-align: center; padding: 20px; min-height: 100vh; margin: 0; }
-        .stadium-wrapper { max-width: 500px; margin: auto; background: rgba(20, 20, 20, 0.95); padding: 25px; border-radius: 24px; border: 3px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .btn-kick { width: 100%; padding: 20px; font-size: 20px; font-weight: 900; background: linear-gradient(to bottom, #51cf66, #2b8a3e); color: white; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase; margin-top: 20px; }
-        .filter-container { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px; justify-content: center; }
-        .filter-btn { padding: 5px 10px; font-size: 10px; cursor: pointer; background: #333; border: none; color: #fff; border-radius: 4px; }
-        .filter-btn.active { background: var(--primary-color); }
-        #timerDisplay { font-size: 14px; margin-top: 10px; color: var(--gold); }
+        :root { --primary-color: #2b8a3e; --stadium-green: #1a4324; --gold: #fcc419; --neon-green: #39ff14; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: radial-gradient(circle at center, var(--stadium-green) 0%, #050f07 100%); color: #fff; padding: 15px; margin: 0; min-height: 100vh; }
+        .stadium-wrapper { max-width: 550px; margin: 20px auto; background: rgba(20, 20, 20, 0.98); padding: 25px; border-radius: 24px; border: 3px solid #2d2d2d; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        h1 { font-size: 28px; color: var(--gold); margin-bottom: 5px; text-transform: uppercase; }
+        .btn-kick { width: 100%; padding: 20px; font-size: 22px; font-weight: 900; background: linear-gradient(to bottom, #51cf66 0%, #2b8a3e 100%); color: white; border: none; border-radius: 14px; cursor: pointer; text-transform: uppercase; margin-top: 20px; }
+        .btn-kick:disabled { background: #333 !important; opacity: 0.6; cursor: not-allowed; }
+        .filter-container { display: flex; justify-content: space-between; gap: 6px; margin: 15px 0; }
+        .filter-btn { flex: 1; padding: 10px 2px; font-size: 11px; font-weight: 800; background: #262626; border: 1px solid #3a3a3a; border-radius: 6px; color: #aaa; cursor: pointer; text-transform: uppercase; }
+        .filter-btn.active { background: var(--primary-color); color: #fff; border-color: #51cf66; }
+        .scoreboard { margin-top: 30px; background: #080808; border: 4px solid #222; border-radius: 16px; padding: 20px; text-align: left; }
+        .row-team { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px dashed #1f1f1f; align-items: center; }
+        .goals-counter { color: var(--neon-green); font-weight: bold; font-size: 18px; }
     </style>
 </head>
 <body>
 
 <div class="stadium-wrapper">
     <h1>🏟️ Arena Golzinho</h1>
-    <select id="selectTime" style="padding: 12px; width: 100%; border-radius: 8px; background: #222; color: #fff; border: 1px solid #444;"></select>
-    
-    <button class="btn-kick" id="btnGol">⚽ CHUTAR PARA O GOL</button>
-    <div id="timerDisplay">Chute gratuito disponível!</div>
+    <select id="selectTime" style="width:100%; padding:15px; background:#1e1e1e; color:#fff; border-radius:10px;"></select>
 
-    <div class="scoreboard" style="margin-top: 30px; text-align: left;">
-        <h3>🏆 RANKING</h3>
+    <button class="btn-kick" id="btnGol">⚽ CHUTAR PARA O GOL</button>
+
+    <div class="scoreboard">
+        <h3>🏆 RANKING NACIONAL</h3>
         <div class="filter-container" id="filterContainer"></div>
-        <div id="dadosPlacar">Sintonizando...</div>
+        <div id="dadosPlacar">Sintonizando refletores...</div>
     </div>
 </div>
 
@@ -41,80 +45,64 @@
         databaseURL: "https://golzinho-410ab-default-rtdb.firebaseio.com",
         projectId: "golzinho-410ab"
     };
-    
+
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
-    let dbData = {};
+    
     let listaTimes = [];
+    let dbData = {};
     let regiaoAtual = 'todos';
-    let ultimoChute = 0;
-    const COOLDOWN_MS = 5 * 60 * 1000;
 
-    PokiSDK.init().catch(() => {});
+    // Inicializa Poki SDK
+    PokiSDK.init().then(() => console.log("Poki SDK Pronto")).catch(() => {});
 
     async function carregarDados() {
         const res = await fetch("https://script.google.com/macros/s/AKfycbxMpYkz_6GhN02m2XqlQheQM3UbuoM7Qfuz5I-IIDELqsyE7fWgx47cCvkcyB-0s_RzRA/exec");
         listaTimes = await res.json();
         
-        // Popular Select
-        const select = document.getElementById('selectTime');
-        select.innerHTML = listaTimes.map(t => `<option value="${t.nome}">${t.emblema} ${t.nome}</option>`).join('');
+        document.getElementById('selectTime').innerHTML = listaTimes.map(t => `<option value="${t.nome}">${t.emblema} ${t.nome}</option>`).join('');
         
-        // Criar Botões de Região
         const regioes = ['todos', ...new Set(listaTimes.map(t => t.regiao))];
         document.getElementById('filterContainer').innerHTML = regioes.map(r => 
             `<button class="filter-btn ${regiaoAtual === r ? 'active' : ''}" onclick="window.filtrar('${r}')">${r.toUpperCase()}</button>`
         ).join('');
     }
 
-    window.filtrar = (regiao) => {
-        regiaoAtual = regiao;
-        renderizarRanking();
+    window.filtrar = (r) => {
+        regiaoAtual = r;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === r));
+        renderizar();
     };
 
-    function renderizarRanking() {
-        const container = document.getElementById('dadosPlacar');
-        const filtrados = listaTimes.filter(t => regiaoAtual === 'todos' || t.regiao === regiaoAtual);
-        
-        container.innerHTML = filtrados.map(t => {
-            const gols = (dbData[t.nome] && dbData[t.nome].gols) || 0;
-            return `<div style="padding:8px; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
-                        <span>${t.emblema} ${t.nome}</span> <b>${gols} GOLS</b>
-                    </div>`;
-        }).join('');
-    }
-
     document.getElementById('btnGol').addEventListener('click', () => {
-        const agora = Date.now();
-        if (agora - ultimoChute >= COOLDOWN_MS) {
-            concluirGol();
-        } else {
-            PokiSDK.rewardedBreak().then((withReward) => {
-                if (withReward) concluirGol();
-                else alert("Assista ao vídeo para ganhar o chute!");
-            });
-        }
+        const time = document.getElementById('selectTime').value;
+        // Chama o Anúncio Recompensado da Poki
+        PokiSDK.rewardedBreak().then((withReward) => {
+            if (withReward) {
+                // Usuário assistiu até o final!
+                runTransaction(ref(db, `times/${time}/gols`), (gols) => (gols || 0) + 1)
+                .then(() => alert("⚽ GOL DO " + time + "!"));
+            } else {
+                alert("Assista ao vídeo até o final para validar seu gol!");
+            }
+        });
     });
 
-    function concluirGol() {
-        const time = document.getElementById('selectTime').value;
-        runTransaction(ref(db, `times/${time}/gols`), (gols) => (gols || 0) + 1).then(() => {
-            ultimoChute = Date.now();
-            alert("⚽ Gol do " + time + "!");
-        });
+    function renderizar() {
+        const container = document.getElementById('dadosPlacar');
+        const filtrados = listaTimes.filter(t => regiaoAtual === 'todos' || t.regiao === regiaoAtual);
+        container.innerHTML = filtrados.map(t => `
+            <div class="row-team">
+                <span>${t.emblema} ${t.nome}</span>
+                <span class="goals-counter">${(dbData[t.nome]?.gols) || 0} GOLS</span>
+            </div>
+        `).join('');
     }
 
     onValue(ref(db, 'times'), (snap) => {
         dbData = snap.val() || {};
-        renderizarRanking();
+        renderizar();
     });
-
-    setInterval(() => {
-        const resto = COOLDOWN_MS - (Date.now() - ultimoChute);
-        document.getElementById('timerDisplay').innerText = resto > 0 ? 
-            `Próximo chute grátis: ${Math.floor(resto/60000)}m ${Math.floor((resto%60000)/1000)}s` : "Chute gratuito disponível!";
-    }, 1000);
 
     carregarDados();
 </script>
