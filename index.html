@@ -105,11 +105,60 @@
         .state-badge { background: #222; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 10px; color: #aaa; border: 1px solid #333; }
         .goals-counter { color: var(--neon-green); font-weight: bold; font-size: 18px; text-shadow: 0 0 6px rgba(57, 255, 20, 0.5); }
 
+        /* Container do Modal do Anúncio Premiado (Rewarded) */
+        .rewarded-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .rewarded-content {
+            background: #141414;
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid var(--gold);
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 0 30px rgba(252, 196, 25, 0.3);
+        }
+        .rewarded-title {
+            color: var(--gold);
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .rewarded-timer {
+            font-size: 36px;
+            color: var(--neon-green);
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+        }
+        .rewarded-status {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+
+<div id="rewardedModal" class="rewarded-modal">
+    <div class="rewarded-content">
+        <div class="rewarded-title">📺 Carregando Recompensa</div>
+        <div class="rewarded-status" id="rewardedStatus">Aguarde a exibição completa do anúncio...</div>
+        <div class="rewarded-timer" id="rewardedTimer">⏳</div>
+        <div style="font-size: 12px; color: #e03131; font-weight: bold; margin-top: 10px;">⚠️ Não feche esta tela para não perder seu gol!</div>
+    </div>
+</div>
 
 <div class="stadium-wrapper">
     <h1>🏟️ Arena Golzinho</h1>
@@ -163,14 +212,13 @@
 
     const app = initializeApp(firebaseConfig);
 
-    // Proteção contra chaves inválidas: impede o travamento total do sistema
     try {
         const appCheck = initializeAppCheck(app, {
             provider: new ReCaptchaV3Provider('SUA_CHAVE_RECAPTCHA_AQUI'),
             isTokenAutoRefreshEnabled: true
         });
     } catch (error) {
-        console.warn("App Check suspenso. Aguardando chave reCAPTCHA válida.");
+        console.warn("App Check suspenso para testes de desenvolvimento local.");
     }
 
     const db = getDatabase(app);
@@ -178,13 +226,15 @@
     const btnGol = document.getElementById('btnGol');
     const selectTime = document.getElementById('selectTime');
     const dadosPlacar = document.getElementById('dadosPlacar');
+    
+    const rewardedModal = document.getElementById('rewardedModal');
+    const rewardedTimer = document.getElementById('rewardedTimer');
+    const rewardedStatus = document.getElementById('rewardedStatus');
 
     let dbDataCache = {}; 
     let mapaTimes = {}; 
     let regiaoAtual = 'todos';
-
-    const URL_ADSTERRA_DIRECT_LINK = "https://www.effectivecpmnetwork.com/rm05z8pd?key=5d6952030979c407cbb28e0f45cc8314";
-    const TEMPO_ANUNCIO_SEGUNDOS = 15;
+    let timePendenteRecompensa = "";
 
     async function carregarDadosDosTimes() {
         try {
@@ -266,6 +316,10 @@
         renderizarPlacar();
     };
 
+    // ========================================================
+    // 📺 INTEGRAÇÃO COM REWARDED ADS (ARQUITETURA DE CALLBACK)
+    // ========================================================
+    
     btnGol.addEventListener('click', () => {
         const timeSelecionado = selectTime.value;
         if (!timeSelecionado) {
@@ -273,29 +327,56 @@
             return;
         }
 
-        window.open(URL_ADSTERRA_DIRECT_LINK, '_blank');
-
-        let tempoRestante = TEMPO_ANUNCIO_SEGUNDOS;
+        timePendenteRecompensa = timeSelecionado;
         btnGol.disabled = true;
-        btnGol.innerText = `⏳ Validando lance (${tempoRestante}s)...`;
 
-        const cronometro = setInterval(() => {
-            tempoRestante--;
-            if (tempoRestante > 0) {
-                btnGol.innerText = `⏳ Validando lance (${tempoRestante}s)...`;
-            } else {
-                clearInterval(cronometro);
-                concluirGol(timeSelecionado);
-            }
-        }, 1000);
+        // Abre a tela de carregamento do prêmio
+        rewardedModal.style.display = 'flex';
+        rewardedTimer.innerText = "⏳";
+        rewardedStatus.innerText = "Chamando provedor de anúncio premiado...";
+
+        // DISPARO DO ANÚNCIO:
+        // Substitua a linha abaixo pela função que a sua nova plataforma de Ads fornecer!
+        chamarProvedorDeAnuncioReal();
     });
 
-    function concluirGol(timeSelecionado) {
-        const golRef = ref(db, `times/${timeSelecionado}/gols`);
+    // Função de simulação enquanto você escolhe e configura sua tag de Reward real
+    function chamarProvedorDeAnuncioReal() {
+        console.log("Provedor de Reward iniciado.");
+        
+        // Exemplo de comportamento esperado de um SDK de vídeo premiado:
+        // Ele toma conta da tela e devolve uma resposta de sucesso ou erro
+        setTimeout(() => {
+            // Simulando que o anúncio abriu e o usuário assistiu com sucesso:
+            onRewardedAdDismissed(true); 
+        }, 3000); // tempo hipotético para testes rápidos
+    }
+
+    // Ganchos de Resposta da Plataforma de Ads (Callbacks)
+    function onRewardedAdDismissed(recompensaGanha) {
+        if (recompensaGanha) {
+            rewardedStatus.innerText = "✨ Anúncio concluído com sucesso!";
+            rewardedTimer.innerText = "✅";
+            setTimeout(() => {
+                rewardedModal.style.display = 'none';
+                concluirGolRewarded();
+            }, 1000);
+        } else {
+            alert("⚠️ Você fechou o anúncio antes do tempo e perdeu o lance!");
+            rewardedModal.style.display = 'none';
+            restaurarBotaoChute();
+        }
+    }
+
+    function concluirGolRewarded() {
+        if (!timePendenteRecompensa) return;
+
+        const golRef = ref(db, `times/${timePendenteRecompensa}/gols`);
+        
         runTransaction(golRef, (currentGols) => {
             return (currentGols || 0) + 1;
         }).then(() => {
-            alert(`⚽ GOOOL CONVALIDADO! O anúncio gerou fundos e o ${timeSelecionado} pontuou!`);
+            alert(`🏆 RECOMPENSA VALIDADA! Gol contabilizado para o ${timePendenteRecompensa}!`);
             restaurarBotaoChute();
         }).catch(err => {
             console.error("Transação rejeitada via Firebase:", err);
@@ -304,6 +385,7 @@
     }
 
     function restaurarBotaoChute() {
+        timePendenteRecompensa = "";
         btnGol.disabled = false;
         btnGol.innerText = "⚽ Chutar pro Gol!";
     }
